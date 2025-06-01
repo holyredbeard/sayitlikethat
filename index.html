@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Italian Phrases Learning App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #5a7d2a;
+            --primary-hover: #4a6a20;
+            --primary-light: #f0f4e8;
+            --text-dark: #2c3e50;
+            --text-light: #4b5563;
+            --accent-gold: #c59d5f;
+            --accent-gold-light: #f8f0e3;
+            --background: #fcedcf; /* Enhetlig persikofärg */
+            --card-bg: #ffffff;
+            --border-light: #e2e8f0;
+            --border-radius: 10px;
+            --shadow: 0 2px 15px rgba(0, 0, 0, 0.06);
+            --font-heading: 'Playfair Display', serif;
+            --font-body: 'Poppins', sans-serif;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-dark);
+            font-family: var(--font-body);
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+            padding: 2rem 1rem;
+            background-color: var(--card-bg);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        h1 {
+            font-family: var(--font-heading);
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .logo {
+            max-width: 180px;
+            margin-bottom: 1rem;
+            transition: var(--transition);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+        
+        .btn {
+            font-family: var(--font-body);
+            font-weight: 500;
+            font-size: 0.9rem;
+            padding: 8px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        .btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .category-card {
+            border: 1px solid var(--border-light);
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: var(--transition);
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.8rem 1rem;
+            min-height: 150px;
+            justify-content: center;
+        }
+        
+        /* Pastell background colors for different categories */
+        .category-card[data-category="Shopping"] {
+            background-color: #FFE8A3; /* Light yellow */
+        }
+        
+        .category-card[data-category="Ordering at a café"] {
+            background-color: #FFCBA4; /* Light peach */
+        }
+        
+        .category-card[data-category="Asking for directions"] {
+            background-color: #C1E7E3; /* Light teal */
+        }
+        
+        .category-card[data-category="Greetings / small talk"] {
+            background-color: #FFF0C3; /* Light cream */
+        }
+        
+        .category-card[data-category="Asking for help"] {
+            background-color: #FFBEA3; /* Salmon */
+        }
+        
+        .category-card[data-category="At the doctor"] {
+            background-color: #F2F5C8; /* Light mint */
+        }
+        
+        .category-card[data-category="Neighbors / housing"] {
+            background-color: #FFCBA4; /* Light peach */
+        }
+        
+        .category-card[data-category="Food & restaurant"] {
+            background-color: #FFE9B3; /* Light gold */
+        }
+        
+        .category-card[data-category="Phone call"] {
+            background-color: #D4E7C1; /* Light mint */
+        }
+        
+        .category-card[data-category="At the post office"] {
+            background-color: #E8D3C1; /* Light tan */
+        }
+        
+        .category-card[data-category="Complaints"] {
+            background-color: #FFCBC1; /* Light coral */
+        }
+        
+        .category-card[data-category="Flirting"] {
+            background-color: #FFD1E3; /* Light pink */
+        }
+        
+        .category-card[data-category="Work"] {
+            background-color: #D1CFFF; /* Light lavender */
+        }
+        
+        .category-card[data-category="Tourist questions"] {
+            background-color: #FFE9D1; /* Light sand */
+        }
+        
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .style-filter-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-light);
+        }
+        
+        .style-filter-btn {
+            background-color: white;
+            border: 1px solid var(--border-light);
+            color: var(--text-light);
+            font-size: 0.85rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .style-filter-btn:hover {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        .style-filter-btn.active {
+            background-color: var(--accent-gold);
+            color: white;
+            border-color: var(--accent-gold);
+        }
+        
+        .phrases-container {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .phrases-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1.2rem 1.5rem;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.5rem;
+            padding: 0 1.5rem;
+            margin-bottom: 3rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .results-container {
+            padding: 1.5rem;
+            margin-top: 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .results-title {
+            font-family: var(--font-heading);
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+
+        .phrase-container {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .phrase-container:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .phrase-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.6rem;
+        }
+
+        .source-phrase {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.6rem;
+            color: var(--primary-color);
+        }
+
+        .target-phrase {
+            font-size: 1.1rem;
+            margin-bottom: 0.6rem;
+            color: var(--text-dark);
+        }
+
+        .style-description {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            background-color: var(--primary-light);
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 15px;
+            margin-top: 0.5rem;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--primary-light);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spinner 1s linear infinite;
+        }
+
+        @keyframes spinner {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-message {
+            background-color: #ffe6e6;
+            color: #c92a2a;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+
+        .language-selector {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .language-selector select {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border-light);
+            background-color: white;
+            font-family: var(--font-body);
+            cursor: pointer;
+            transition: var(--transition);
+            min-width: 180px;
+        }
+        
+        .language-selector select:hover {
+            border-color: var(--primary-color);
+        }
+        
+        .flag-icon {
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+        
+        .favorites-container {
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background-color: var(--accent-gold-light);
+            border-radius: var(--border-radius);
+            display: none;
+            max-width: 1200px;
+        }
+        
+        .favorites-container.active {
+            display: block;
+        }
+        
+        .favorites-title {
+            font-family: var(--font-heading);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .favorites-title svg {
+            margin-right: 0.5rem;
+            fill: var(--accent-gold);
+        }
+        
+        .favorite-btn {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            margin-left: auto;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+        }
+        
+        .favorite-btn svg {
+            fill: #d1d1d1;
+            transition: var(--transition);
+        }
+        
+        .favorite-btn.active svg {
+            fill: #FFD700;
+        }
+        
+        .audio-btn {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            margin-right: 0.5rem;
+            color: var(--primary-color);
+            display: inline-flex;
+            align-items: center;
+            vertical-align: middle;
+        }
+        
+        .word {
+            display: inline-block;
+            position: relative;
+            margin-right: 3px;
+            cursor: pointer;
+            background-color: rgba(90, 125, 42, 0.1);
+            border-radius: 3px;
+            padding: 2px 4px;
+            transition: background-color 0.2s ease;
+            color: var(--primary-color);
+            font-weight: 500;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .word:hover {
+            background-color: rgba(90, 125, 42, 0.2);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .target-word {
+            display: inline-block;
+            border-radius: 3px;
+            padding: 2px 4px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .target-word.highlight {
+            background-color: rgba(197, 157, 95, 0.3);
+            font-weight: 500;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .source-phrase, .target-phrase {
+            line-height: 1.8;
+            padding: 8px 0;
+        }
+        
+        .load-more-btn {
+            display: block;
+            margin: 2rem auto;
+            padding: 10px 25px;
+        }
+        
+        /* Responsive design improvements */
+        @media (max-width: 768px) {
+            .categories-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                padding: 0 1rem;
+                gap: 1rem;
+            }
+            
+            .category-card {
+                padding: 1.4rem 0.8rem;
+                min-height: 120px;
+            }
+            
+            .phrase-container {
+                padding: 1.2rem;
+            }
+            
+            .source-phrase, .target-phrase {
+                font-size: 1rem;
+            }
+            
+            .results-title {
+                font-size: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            header {
+                padding: 1.5rem 0.8rem;
+                margin-bottom: 2rem;
+            }
+            
+            h1 {
+                font-size: 1.4rem;
+            }
+            
+            .logo {
+                max-width: 150px;
+            }
+            
+            .categories-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+            
+            .language-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .results-container, .favorites-container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="assets/logo.png" alt="Say it like that" class="logo">
+        <h1>Say it like that</h1>
+        <p class="subtitle">Learn practical phrases for everyday situations</p>
+        
+        <div class="language-selector">
+            <select id="source-language">
+                <option value="italian">🇮🇹 Italian</option>
+                <option value="french">🇫🇷 French</option>
+                <option value="spanish">🇪🇸 Spanish</option>
+                <option value="german">🇩🇪 German</option>
+                <option value="portuguese">🇵🇹 Portuguese</option>
+                <option value="polish">🇵🇱 Polish</option>
+                <option value="swedish">🇸🇪 Swedish</option>
+            </select>
+            
+            <select id="target-language">
+                <option value="english">🇬🇧 English</option>
+                <option value="italian">🇮🇹 Italian</option>
+                <option value="french">🇫🇷 French</option>
+                <option value="spanish">🇪🇸 Spanish</option>
+                <option value="german">🇩🇪 German</option>
+                <option value="portuguese">🇵🇹 Portuguese</option>
+                <option value="polish">🇵🇱 Polish</option>
+                <option value="swedish">🇸🇪 Swedish</option>
+            </select>
+        </div>
+    </header>
+
+    <div class="categories-grid">
+        <div class="category-card" data-category="Shopping">🛒 Shopping</div>
+        <div class="category-card" data-category="Ordering at a café">☕ Ordering at a café</div>
+        <div class="category-card" data-category="Asking for directions">🚉 Asking for directions</div>
+        <div class="category-card" data-category="Phone call">📞 Phone call</div>
+        <div class="category-card" data-category="Greetings / small talk">👋 Greetings / small talk</div>
+        <div class="category-card" data-category="Asking for help">💬 Asking for help</div>
+        <div class="category-card" data-category="At the post office">🧾 At the post office</div>
+        <div class="category-card" data-category="At the doctor">🏥 At the doctor</div>
+        <div class="category-card" data-category="Neighbors / housing">🚪 Neighbors / housing</div>
+        <div class="category-card" data-category="Food & restaurant">🍕 Food & restaurant</div>
+        <div class="category-card" data-category="Complaints">😡 Complaints</div>
+        <div class="category-card" data-category="Flirting">❤️ Flirting</div>
+        <div class="category-card" data-category="Work">💼 Work</div>
+        <div class="category-card" data-category="Tourist questions">🏖️ Tourist questions</div>
+    </div>
+
+    <div class="favorites-container">
+        <h2 class="favorites-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+            My Favorite Phrases
+        </h2>
+        <div id="favorites-content">
+            <!-- Favorite phrases will be displayed here -->
+        </div>
+    </div>
+
+    <div class="results-container">
+        <h2 class="results-title">Select a category to learn phrases</h2>
+        
+        <div class="style-filter-container" style="display: none;">
+            <button class="style-filter-btn active" data-style="all">All</button>
+            <button class="style-filter-btn" data-style="Casual">Casual</button>
+            <button class="style-filter-btn" data-style="Polite">Polite</button>
+            <button class="style-filter-btn" data-style="Formal">Formal</button>
+            <button class="style-filter-btn" data-style="Direct">Direct</button>
+            <button class="style-filter-btn" data-style="Slang">Slang</button>
+            <button class="style-filter-btn" data-style="Enthusiastic">Enthusiastic</button>
+        </div>
+        
+        <div id="results-content">
+            <!-- Results will be displayed here -->
+        </div>
+        
+        <button id="load-more" class="btn load-more-btn" style="display: none;">More phrases</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const categoryCards = document.querySelectorAll('.category-card');
+            const resultsContent = document.getElementById('results-content');
+            const loadMoreBtn = document.getElementById('load-more');
+            const styleFilterContainer = document.querySelector('.style-filter-container');
+            const styleFilterBtns = document.querySelectorAll('.style-filter-btn');
+            const sourceLanguageSelect = document.getElementById('source-language');
+            const targetLanguageSelect = document.getElementById('target-language');
+            const favoritesContainer = document.querySelector('.favorites-container');
+            const favoritesContent = document.getElementById('favorites-content');
+            
+            // Language flags and display names
+            const languageData = {
+                'italian': { flag: '🇮🇹', name: 'Italian' },
+                'french': { flag: '🇫🇷', name: 'French' },
+                'spanish': { flag: '🇪🇸', name: 'Spanish' },
+                'german': { flag: '🇩🇪', name: 'German' },
+                'portuguese': { flag: '🇵🇹', name: 'Portuguese' },
+                'polish': { flag: '🇵🇱', name: 'Polish' },
+                'swedish': { flag: '🇸🇪', name: 'Swedish' },
+                'english': { flag: '🇬🇧', name: 'English' }
+            };
+            
+            // Multi-language translations for common phrases
+            const translationData = {
+                "Non capisco.": {
+                    "italian": "Non capisco.",
+                    "spanish": "No entiendo.",
+                    "french": "Je ne comprends pas.",
+                    "german": "Ich verstehe nicht.",
+                    "portuguese": "Eu não entendo.",
+                    "polish": "Nie rozumiem.",
+                    "swedish": "Jag förstår inte.",
+                    "english": "I don't understand."
+                },
+                "Grazie mille!": {
+                    "italian": "Grazie mille!",
+                    "spanish": "¡Muchas gracias!",
+                    "french": "Merci beaucoup !",
+                    "german": "Vielen Dank!",
+                    "portuguese": "Muito obrigado!",
+                    "polish": "Dziękuję bardzo!",
+                    "swedish": "Tack så mycket!",
+                    "english": "Thank you very much!"
+                },
+                "Scusi, può aiutarmi?": {
+                    "italian": "Scusi, può aiutarmi?",
+                    "spanish": "Disculpe, ¿puede ayudarme?",
+                    "french": "Excusez-moi, pouvez-vous m'aider ?",
+                    "german": "Entschuldigung, können Sie mir helfen?",
+                    "portuguese": "Com licença, pode me ajudar?",
+                    "polish": "Przepraszam, czy może mi pan pomóc?",
+                    "swedish": "Ursäkta, kan du hjälpa mig?",
+                    "english": "Excuse me, can you help me?"
+                }
+            };
+            
+            // Load favorites from localStorage
+            let favorites = JSON.parse(localStorage.getItem('phrasesFavorites')) || [];
+            
+            // Current state
+            let currentCategory = '';
+            let currentOffset = 0;
+            let currentStyle = 'all';
+            let phrasesData = [];
+            let audioContext = null;
+            
+            // Update language title when source language changes
+            sourceLanguageSelect.addEventListener('change', function() {
+                const selectedLang = this.value;
+                
+                // Reset current state and refresh UI
+                currentCategory = '';
+                currentOffset = 0;
+                currentStyle = 'all';
+                resultsContent.innerHTML = '<div class="no-results">Select a category to learn phrases</div>';
+                styleFilterContainer.style.display = 'none';
+                loadMoreBtn.style.display = 'none';
+                
+                // Update UI for existing data if any
+                if (phrasesData.length > 0) {
+                    displayResults(phrasesData, currentCategory);
+                }
+            });
+            
+            // Update UI when target language changes
+            targetLanguageSelect.addEventListener('change', function() {
+                // Update UI for existing data if any
+                if (phrasesData.length > 0) {
+                    displayResults(phrasesData, currentCategory);
+                }
+            });
+            
+            // Initialize audio context on user interaction
+            document.addEventListener('click', initAudioContext, { once: true });
+            
+            function initAudioContext() {
+                try {
+                    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                    audioContext = new AudioContext();
+                    console.log('AudioContext initialized');
+                } catch (e) {
+                    console.error('Web Audio API not supported in this browser', e);
+                }
+            }
+            
+            // Category card click handler
+            categoryCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const category = this.getAttribute('data-category');
+                    currentCategory = category;
+                    currentOffset = 0;
+                    currentStyle = 'all';
+                    resetStyleFilters();
+                    fetchPhrases(category, currentOffset).then(() => {
+                        resultsContent.scrollIntoView({ behavior: 'smooth' });
+                    });
+                });
+            });
+
+            // Style filter buttons click handler
+            styleFilterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const style = this.getAttribute('data-style');
+                    currentStyle = style;
+                    
+                    // Update active class
+                    styleFilterBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Filter phrases by style
+                    filterPhrasesByStyle(style);
+                });
+            });
+            
+            // Load more button click handler
+            loadMoreBtn.addEventListener('click', function() {
+                currentOffset += 3;
+                fetchPhrases(currentCategory, currentOffset);
+            });
+            
+            // Fetch phrases for a category
+            async function fetchPhrases(category, offset = 0) {
+                // Show loading spinner
+                if (offset === 0) {
+                resultsContent.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                `;
+                }
+
+                try {
+                    // For demo purposes, we'll use hardcoded sample data instead of API
+                    setTimeout(() => {
+                        const data = generateSampleData(category);
+                        
+                        if (offset === 0) {
+                            phrasesData = data;
+                            displayResults(data, category);
+                            styleFilterContainer.style.display = 'flex';
+                        } else {
+                            // Logic for subsequent loads
+                            // Since generateSampleData(category) returns the same small set of phrases
+                            // and doesn't support pagination itself, there are no "new" distinct phrases
+                            // to load when offset > 0 from this source.
+                            // To prevent appending the same phrases again, newData should be empty.
+                            const newData = []; 
+                            
+                            // Only append if newData actually has content (it won't in this case,
+                            // but this is good practice if newData could sometimes have items)
+                            if (newData.length > 0) {
+                                phrasesData = [...phrasesData, ...newData];
+                                appendResults(newData);
+                            }
+                        }
+                        
+                        // Show load more button if there's more data
+                        loadMoreBtn.style.display = phrasesData.length < 9 ? 'block' : 'none';
+                        
+                        // Filter by current style if not "all"
+                        if (currentStyle !== 'all') {
+                            filterPhrasesByStyle(currentStyle);
+                        }
+                    }, 1000);
+                } catch (error) {
+                    console.error('Error fetching phrases:', error);
+                    resultsContent.innerHTML = `
+                        <div class="error-message">
+                            <p>There was an error fetching the phrases. Please try again later.</p>
+                            <p>${error.message}</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // Generate sample data
+            function generateSampleData(category) {
+                const sourceLang = sourceLanguageSelect.value;
+                const targetLang = targetLanguageSelect.value;
+                
+                // Sample data based on category
+                const samplePhrases = {
+                    "Shopping": [
+                        {
+                            source: "Quanto costa questo?",
+                            target: getTranslation("Quanto costa questo?", sourceLang, targetLang) || "How much does this cost?",
+                            style: "Casual",
+                            words: [
+                                { source: "Quanto", target: "How much" },
+                                { source: "costa", target: "costs" },
+                                { source: "questo", target: "this" }
+                            ]
+                        },
+                        {
+                            source: "Posso provarlo, per favore?",
+                            target: getTranslation("Posso provarlo, per favore?", sourceLang, targetLang) || "Can I try it on, please?",
+                            style: "Polite",
+                            words: [
+                                { source: "Posso", target: "Can I" },
+                                { source: "provarlo", target: "try it" },
+                                { source: "per favore", target: "please" }
+                            ]
+                        },
+                        {
+                            source: "Accettate carte di credito?",
+                            target: getTranslation("Accettate carte di credito?", sourceLang, targetLang) || "Do you accept credit cards?",
+                            style: "Formal",
+                            words: [
+                                { source: "Accettate", target: "Do you accept" },
+                                { source: "carte", target: "cards" },
+                                { source: "di credito", target: "credit" }
+                            ]
+                        }
+                    ],
+                    "Ordering at a café": [
+                        {
+                            source: "Un caffè, per favore.",
+                            target: getTranslation("Un caffè, per favore.", sourceLang, targetLang) || "A coffee, please.",
+                            style: "Casual",
+                            words: [
+                                { source: "Un", target: "A" },
+                                { source: "caffè", target: "coffee" },
+                                { source: "per favore", target: "please" }
+                            ]
+                        },
+                        {
+                            source: "Vorrei un cappuccino e un cornetto.",
+                            target: getTranslation("Vorrei un cappuccino e un cornetto.", sourceLang, targetLang) || "I would like a cappuccino and a croissant.",
+                            style: "Formal",
+                            words: [
+                                { source: "Vorrei", target: "I would like" },
+                                { source: "un", target: "a" },
+                                { source: "cappuccino", target: "cappuccino" },
+                                { source: "e", target: "and" },
+                                { source: "un", target: "a" },
+                                { source: "cornetto", target: "croissant" }
+                            ]
+                        },
+                        {
+                            source: "Mi porti il conto, per cortesia?",
+                            target: getTranslation("Mi porti il conto, per cortesia?", sourceLang, targetLang) || "Could you bring me the bill, please?",
+                            style: "Polite",
+                            words: [
+                                { source: "Mi", target: "me" },
+                                { source: "porti", target: "bring" },
+                                { source: "il conto", target: "the bill" },
+                                { source: "per cortesia", target: "please" }
+                            ]
+                        }
+                    ],
+                    "Asking for directions": [
+                        {
+                            source: "Dov'è la stazione?",
+                            target: getTranslation("Dov'è la stazione?", sourceLang, targetLang) || "Where is the station?",
+                            style: "Direct",
+                            words: [
+                                { source: "Dov'è", target: "Where is" },
+                                { source: "la", target: "the" },
+                                { source: "stazione", target: "station" }
+                            ]
+                        },
+                        {
+                            source: "Mi scusi, come posso arrivare al centro?",
+                            target: getTranslation("Mi scusi, come posso arrivare al centro?", sourceLang, targetLang) || "Excuse me, how can I get to the center?",
+                            style: "Polite",
+                            words: [
+                                { source: "Mi scusi", target: "Excuse me" },
+                                { source: "come", target: "how" },
+                                { source: "posso", target: "can I" },
+                                { source: "arrivare", target: "arrive/get" },
+                                { source: "al centro", target: "to the center" }
+                            ]
+                        },
+                        {
+                            source: "Quanto tempo ci vuole per arrivare al Colosseo a piedi?",
+                            target: getTranslation("Quanto tempo ci vuole per arrivare al Colosseo a piedi?", sourceLang, targetLang) || "How long does it take to walk to the Colosseum?",
+                            style: "Casual",
+                            words: [
+                                { source: "Quanto tempo", target: "How long" },
+                                { source: "ci vuole", target: "does it take" },
+                                { source: "per arrivare", target: "to get" },
+                                { source: "al Colosseo", target: "to the Colosseum" },
+                                { source: "a piedi", target: "on foot/walking" }
+                            ]
+                        }
+                    ],
+                    "Phone call": [
+                        {
+                            source: "Pronto, chi parla?",
+                            target: getTranslation("Pronto, chi parla?", sourceLang, targetLang) || "Hello, who's speaking?",
+                            style: "Direct",
+                            words: [
+                                { source: "Pronto", target: "Hello" },
+                                { source: "chi", target: "who" },
+                                { source: "parla", target: "is speaking" }
+                            ]
+                        },
+                        {
+                            source: "Potrei parlare con il signor Rossi?",
+                            target: getTranslation("Potrei parlare con il signor Rossi?", sourceLang, targetLang) || "Could I speak with Mr. Rossi?",
+                            style: "Formal",
+                            words: [
+                                { source: "Potrei", target: "Could I" },
+                                { source: "parlare", target: "speak" },
+                                { source: "con", target: "with" },
+                                { source: "il signor", target: "Mr." },
+                                { source: "Rossi", target: "Rossi" }
+                            ]
+                        },
+                        {
+                            source: "La linea è disturbata, può ripetere?",
+                            target: getTranslation("La linea è disturbata, può ripetere?", sourceLang, targetLang) || "The line is bad, can you repeat?",
+                            style: "Polite",
+                            words: [
+                                { source: "La linea", target: "The line" },
+                                { source: "è", target: "is" },
+                                { source: "disturbata", target: "disturbed/bad" },
+                                { source: "può", target: "can you" },
+                                { source: "ripetere", target: "repeat" }
+                            ]
+                        }
+                    ],
+                    "Greetings / small talk": [
+                        {
+                            source: "Buongiorno, come sta?",
+                            target: getTranslation("Buongiorno, come sta?", sourceLang, targetLang) || "Good morning, how are you?",
+                            style: "Formal",
+                            words: [
+                                { source: "Buongiorno", target: "Good morning" },
+                                { source: "come", target: "how" },
+                                { source: "sta", target: "are you" }
+                            ]
+                        },
+                        {
+                            source: "Ciao! Come va?",
+                            target: getTranslation("Ciao! Come va?", sourceLang, targetLang) || "Hi! How's it going?",
+                            style: "Casual",
+                            words: [
+                                { source: "Ciao", target: "Hi" },
+                                { source: "Come", target: "How" },
+                                { source: "va", target: "is it going" }
+                            ]
+                        },
+                        {
+                            source: "Che tempo fa oggi?",
+                            target: getTranslation("Che tempo fa oggi?", sourceLang, targetLang) || "What's the weather like today?",
+                            style: "Casual",
+                            words: [
+                                { source: "Che", target: "What" },
+                                { source: "tempo", target: "weather" },
+                                { source: "fa", target: "is like" },
+                                { source: "oggi", target: "today" }
+                            ]
+                        }
+                    ],
+                    "Asking for help": [
+                        {
+                            source: "Scusi, può aiutarmi?",
+                            target: getTranslation("Scusi, può aiutarmi?", sourceLang, targetLang) || "Excuse me, can you help me?",
+                            style: "Polite",
+                            words: [
+                                { source: "Scusi", target: "Excuse me" },
+                                { source: "può", target: "can you" },
+                                { source: "aiutarmi", target: "help me" }
+                            ]
+                        },
+                        {
+                            source: "Ho bisogno di assistenza, per favore.",
+                            target: getTranslation("Ho bisogno di assistenza, per favore.", sourceLang, targetLang) || "I need assistance, please.",
+                            style: "Formal",
+                            words: [
+                                { source: "Ho bisogno", target: "I need" },
+                                { source: "di", target: "of" },
+                                { source: "assistenza", target: "assistance" },
+                                { source: "per favore", target: "please" }
+                            ]
+                        },
+                        {
+                            source: "Aiuto! C'è un'emergenza!",
+                            target: getTranslation("Aiuto! C'è un'emergenza!", sourceLang, targetLang) || "Help! There's an emergency!",
+                            style: "Direct",
+                            words: [
+                                { source: "Aiuto", target: "Help" },
+                                { source: "C'è", target: "There is" },
+                                { source: "un'emergenza", target: "an emergency" }
+                            ]
+                        }
+                    ],
+                    "At the post office": [
+                        {
+                            source: "Vorrei spedire questo pacco.",
+                            target: getTranslation("Vorrei spedire questo pacco.", sourceLang, targetLang) || "I would like to send this package.",
+                            style: "Formal",
+                            words: [
+                                { source: "Vorrei", target: "I would like" },
+                                { source: "spedire", target: "to send" },
+                                { source: "questo", target: "this" },
+                                { source: "pacco", target: "package" }
+                            ]
+                        },
+                        {
+                            source: "Quanto costa spedire una lettera in America?",
+                            target: getTranslation("Quanto costa spedire una lettera in America?", sourceLang, targetLang) || "How much does it cost to send a letter to America?",
+                            style: "Direct",
+                            words: [
+                                { source: "Quanto", target: "How much" },
+                                { source: "costa", target: "does it cost" },
+                                { source: "spedire", target: "to send" },
+                                { source: "una lettera", target: "a letter" },
+                                { source: "in America", target: "to America" }
+                            ]
+                        },
+                        {
+                            source: "Devo compilare questo modulo?",
+                            target: getTranslation("Devo compilare questo modulo?", sourceLang, targetLang) || "Do I need to fill out this form?",
+                            style: "Casual",
+                            words: [
+                                { source: "Devo", target: "Do I need to" },
+                                { source: "compilare", target: "fill out" },
+                                { source: "questo", target: "this" },
+                                { source: "modulo", target: "form" }
+                            ]
+                        }
+                    ],
+                    "At the doctor": [
+                        {
+                            source: "Mi fa male qui.",
+                            target: getTranslation("Mi fa male qui.", sourceLang, targetLang) || "It hurts here.",
+                            style: "Direct",
+                            words: [
+                                { source: "Mi", target: "Me" },
+                                { source: "fa male", target: "hurts" },
+                                { source: "qui", target: "here" }
+                            ]
+                        },
+                        {
+                            source: "Sono allergico a questo farmaco.",
+                            target: getTranslation("Sono allergico a questo farmaco.", sourceLang, targetLang) || "I'm allergic to this medication.",
+                            style: "Casual",
+                            words: [
+                                { source: "Sono", target: "I am" },
+                                { source: "allergico", target: "allergic" },
+                                { source: "a", target: "to" },
+                                { source: "questo", target: "this" },
+                                { source: "farmaco", target: "medication" }
+                            ]
+                        },
+                        {
+                            source: "Potrebbe prescrivermi qualcosa per il dolore?",
+                            target: getTranslation("Potrebbe prescrivermi qualcosa per il dolore?", sourceLang, targetLang) || "Could you prescribe something for the pain?",
+                            style: "Formal",
+                            words: [
+                                { source: "Potrebbe", target: "Could you" },
+                                { source: "prescrivermi", target: "prescribe me" },
+                                { source: "qualcosa", target: "something" },
+                                { source: "per", target: "for" },
+                                { source: "il dolore", target: "the pain" }
+                            ]
+                        }
+                    ],
+                    "Neighbors / housing": [
+                        {
+                            source: "C'è troppo rumore, potrebbe abbassare il volume?",
+                            target: getTranslation("C'è troppo rumore, potrebbe abbassare il volume?", sourceLang, targetLang) || "There's too much noise, could you lower the volume?",
+                            style: "Formal",
+                            words: [
+                                { source: "C'è", target: "There is" },
+                                { source: "troppo", target: "too much" },
+                                { source: "rumore", target: "noise" },
+                                { source: "potrebbe", target: "could you" },
+                                { source: "abbassare", target: "lower" },
+                                { source: "il volume", target: "the volume" }
+                            ]
+                        },
+                        {
+                            source: "Il riscaldamento non funziona.",
+                            target: getTranslation("Il riscaldamento non funziona.", sourceLang, targetLang) || "The heating is not working.",
+                            style: "Direct",
+                            words: [
+                                { source: "Il riscaldamento", target: "The heating" },
+                                { source: "non", target: "not" },
+                                { source: "funziona", target: "is working" }
+                            ]
+                        },
+                        {
+                            source: "Potrei prendere in prestito una tazza di zucchero?",
+                            target: getTranslation("Potrei prendere in prestito una tazza di zucchero?", sourceLang, targetLang) || "Could I borrow a cup of sugar?",
+                            style: "Polite",
+                            words: [
+                                { source: "Potrei", target: "Could I" },
+                                { source: "prendere in prestito", target: "borrow" },
+                                { source: "una tazza", target: "a cup" },
+                                { source: "di", target: "of" },
+                                { source: "zucchero", target: "sugar" }
+                            ]
+                        }
+                    ],
+                    "Food & restaurant": [
+                        {
+                            source: "Vorrei prenotare un tavolo per due persone.",
+                            target: getTranslation("Vorrei prenotare un tavolo per due persone.", sourceLang, targetLang) || "I would like to reserve a table for two people.",
+                            style: "Formal",
+                            words: [
+                                { source: "Vorrei", target: "I would like" },
+                                { source: "prenotare", target: "to reserve" },
+                                { source: "un tavolo", target: "a table" },
+                                { source: "per", target: "for" },
+                                { source: "due", target: "two" },
+                                { source: "persone", target: "people" }
+                            ]
+                        },
+                        {
+                            source: "Cosa mi consiglia?",
+                            target: getTranslation("Cosa mi consiglia?", sourceLang, targetLang) || "What do you recommend?",
+                            style: "Casual",
+                            words: [
+                                { source: "Cosa", target: "What" },
+                                { source: "mi", target: "to me" },
+                                { source: "consiglia", target: "do you recommend" }
+                            ]
+                        },
+                        {
+                            source: "Sono vegetariano, avete opzioni senza carne?",
+                            target: getTranslation("Sono vegetariano, avete opzioni senza carne?", sourceLang, targetLang) || "I am vegetarian, do you have meat-free options?",
+                            style: "Direct",
+                            words: [
+                                { source: "Sono", target: "I am" },
+                                { source: "vegetariano", target: "vegetarian" },
+                                { source: "avete", target: "do you have" },
+                                { source: "opzioni", target: "options" },
+                                { source: "senza carne", target: "meat-free" }
+                            ]
+                        }
+                    ],
+                    "Complaints": [
+                        {
+                            source: "Questo non è accettabile.",
+                            target: getTranslation("Questo non è accettabile.", sourceLang, targetLang) || "This is not acceptable.",
+                            style: "Direct",
+                            words: [
+                                { source: "Questo", target: "This" },
+                                { source: "non", target: "not" },
+                                { source: "è", target: "is" },
+                                { source: "accettabile", target: "acceptable" }
+                            ]
+                        },
+                        {
+                            source: "Mi dispiace, ma devo fare un reclamo.",
+                            target: getTranslation("Mi dispiace, ma devo fare un reclamo.", sourceLang, targetLang) || "I'm sorry, but I need to make a complaint.",
+                            style: "Polite",
+                            words: [
+                                { source: "Mi dispiace", target: "I'm sorry" },
+                                { source: "ma", target: "but" },
+                                { source: "devo", target: "I need to" },
+                                { source: "fare", target: "make" },
+                                { source: "un reclamo", target: "a complaint" }
+                            ]
+                        },
+                        {
+                            source: "Voglio parlare con il responsabile, subito!",
+                            target: getTranslation("Voglio parlare con il responsabile, subito!", sourceLang, targetLang) || "I want to speak with the manager, right now!",
+                            style: "Slang",
+                            words: [
+                                { source: "Voglio", target: "I want" },
+                                { source: "parlare", target: "to speak" },
+                                { source: "con", target: "with" },
+                                { source: "il responsabile", target: "the manager" },
+                                { source: "subito", target: "right now" }
+                            ]
+                        }
+                    ],
+                    "Flirting": [
+                        {
+                            source: "Hai degli occhi bellissimi.",
+                            target: getTranslation("Hai degli occhi bellissimi.", sourceLang, targetLang) || "You have beautiful eyes.",
+                            style: "Casual",
+                            words: [
+                                { source: "Hai", target: "You have" },
+                                { source: "degli", target: "some" },
+                                { source: "occhi", target: "eyes" },
+                                { source: "bellissimi", target: "very beautiful" }
+                            ]
+                        },
+                        {
+                            source: "Posso offrirti da bere?",
+                            target: getTranslation("Posso offrirti da bere?", sourceLang, targetLang) || "Can I buy you a drink?",
+                            style: "Direct",
+                            words: [
+                                { source: "Posso", target: "Can I" },
+                                { source: "offrirti", target: "offer you" },
+                                { source: "da bere", target: "a drink" }
+                            ]
+                        },
+                        {
+                            source: "Mi piacerebbe conoscerti meglio.",
+                            target: getTranslation("Mi piacerebbe conoscerti meglio.", sourceLang, targetLang) || "I would like to get to know you better.",
+                            style: "Polite",
+                            words: [
+                                { source: "Mi piacerebbe", target: "I would like" },
+                                { source: "conoscerti", target: "to know you" },
+                                { source: "meglio", target: "better" }
+                            ]
+                        }
+                    ],
+                    "Work": [
+                        {
+                            source: "Potrebbe inviarmi il rapporto, per favore?",
+                            target: getTranslation("Potrebbe inviarmi il rapporto, per favore?", sourceLang, targetLang) || "Could you send me the report, please?",
+                            style: "Formal",
+                            words: [
+                                { source: "Potrebbe", target: "Could you" },
+                                { source: "inviarmi", target: "send me" },
+                                { source: "il rapporto", target: "the report" },
+                                { source: "per favore", target: "please" }
+                            ]
+                        },
+                        {
+                            source: "Vorrei chiedere un giorno di ferie.",
+                            target: getTranslation("Vorrei chiedere un giorno di ferie.", sourceLang, targetLang) || "I would like to request a day off.",
+                            style: "Polite",
+                            words: [
+                                { source: "Vorrei", target: "I would like" },
+                                { source: "chiedere", target: "to request" },
+                                { source: "un giorno", target: "a day" },
+                                { source: "di ferie", target: "of vacation" }
+                            ]
+                        },
+                        {
+                            source: "Abbiamo una riunione alle 10.",
+                            target: getTranslation("Abbiamo una riunione alle 10.", sourceLang, targetLang) || "We have a meeting at 10.",
+                            style: "Direct",
+                            words: [
+                                { source: "Abbiamo", target: "We have" },
+                                { source: "una riunione", target: "a meeting" },
+                                { source: "alle", target: "at" },
+                                { source: "10", target: "10" }
+                            ]
+                        }
+                    ],
+                    "Tourist questions": [
+                        {
+                            source: "Dov'è il museo più vicino?",
+                            target: getTranslation("Dov'è il museo più vicino?", sourceLang, targetLang) || "Where is the nearest museum?",
+                            style: "Direct",
+                            words: [
+                                { source: "Dov'è", target: "Where is" },
+                                { source: "il museo", target: "museum" },
+                                { source: "più vicino", target: "nearest" }
+                            ]
+                        },
+                        {
+                            source: "A che ora chiude la cattedrale?",
+                            target: getTranslation("A che ora chiude la cattedrale?", sourceLang, targetLang) || "What time does the cathedral close?",
+                            style: "Casual",
+                            words: [
+                                { source: "A che ora", target: "At what time" },
+                                { source: "chiude", target: "closes" },
+                                { source: "la cattedrale", target: "the cathedral" }
+                            ]
+                        },
+                        {
+                            source: "Potrebbe consigliarmi un buon ristorante locale?",
+                            target: getTranslation("Potrebbe consigliarmi un buon ristorante locale?", sourceLang, targetLang) || "Could you recommend a good local restaurant?",
+                            style: "Polite",
+                            words: [
+                                { source: "Potrebbe", target: "Could you" },
+                                { source: "consigliarmi", target: "recommend me" },
+                                { source: "un buon", target: "a good" },
+                                { source: "ristorante", target: "restaurant" },
+                                { source: "locale", target: "local" }
+                            ]
+                        }
+                    ]
+                };
+                
+                // Generic phrases for any category not defined above
+                const genericPhrases = [
+                    {
+                        source: "Scusi, può aiutarmi?",
+                        target: getTranslation("Scusi, può aiutarmi?", sourceLang, targetLang) || "Excuse me, can you help me?",
+                        style: "Polite",
+                        words: [
+                            { source: "Scusi", target: "Excuse me" },
+                            { source: "può", target: "can you" },
+                            { source: "aiutarmi", target: "help me" }
+                        ]
+                    },
+                    {
+                        source: "Non capisco.",
+                        target: getTranslation("Non capisco.", sourceLang, targetLang) || "I don't understand.",
+                        style: "Direct",
+                        words: [
+                            { source: "Non", target: "don't" },
+                            { source: "capisco", target: "understand" }
+                        ]
+                    },
+                    {
+                        source: "Grazie mille!",
+                        target: getTranslation("Grazie mille!", sourceLang, targetLang) || "Thank you very much!",
+                        style: "Enthusiastic",
+                        words: [
+                            { source: "Grazie", target: "Thank you" },
+                            { source: "mille", target: "a thousand/very much" }
+                        ]
+                    }
+                ];
+                
+                // Return phrases for the selected category, or generic phrases if category not found
+                const result = samplePhrases[category] || genericPhrases;
+                
+                return result.map(phrase => {
+                    // Update target translation based on selected languages
+                    return {
+                        ...phrase,
+                        target: getTranslation(phrase.source, sourceLang, targetLang) || phrase.target
+                    };
+                });
+            }
+            
+            // Get translation for a phrase based on source and target languages
+            function getTranslation(phrase, sourceLang, targetLang) {
+                // If languages are the same, return the original phrase
+                if (sourceLang === targetLang) {
+                    return phrase;
+                }
+                
+                // Check if we have translation data for this phrase
+                if (translationData[phrase]) {
+                    // First find the English version as a pivot if source is not English
+                    if (sourceLang !== 'english' && sourceLang !== 'italian') {
+                        // For non-italian sources, we don't have data, so return null
+                        return null;
+                    }
+                    
+                    // Return the translation in the target language
+                    return translationData[phrase][targetLang];
+                }
+                
+                // No translation data available
+                return null;
+            }
+            
+            // Display results
+            function displayResults(phrases, category) {
+                // Update title
+                const categoryTitle = category ? category.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'All phrases';
+                let html = `<h2 class="results-title">Phrases for: ${categoryTitle}</h2>`;
+                
+                phrases.forEach(phrase => {
+                    const isFavorite = favorites.some(fav => fav.source === phrase.source);
+                    html += createPhraseHTML(phrase, isFavorite);
+                });
+
+                resultsContent.innerHTML = html;
+                
+                // Add event listeners to new elements
+                addEventListenersToResults();
+            }
+            
+            // Append more results
+            function appendResults(newPhrases) {
+                let html = '';
+                
+                newPhrases.forEach(phrase => {
+                    const isFavorite = favorites.some(fav => fav.source === phrase.source);
+                    html += createPhraseHTML(phrase, isFavorite);
+                });
+
+                // Append to existing content
+                const container = document.createElement('div');
+                container.innerHTML = html;
+                
+                while (container.firstChild) {
+                    resultsContent.appendChild(container.firstChild);
+                }
+                
+                // Add event listeners to new elements
+                addEventListenersToResults();
+            }
+            
+            // Format phrase with words
+            function formatPhraseWithWords(phrase) {
+                if (!phrase.words || phrase.words.length === 0) {
+                    return phrase.source;
+                }
+                
+                let formattedPhrase = phrase.source;
+                
+                // Replace each word with an interactive span
+                phrase.words.forEach((word, index) => {
+                    const wordPattern = word.source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special regex characters
+                    const regex = new RegExp(`\\b${wordPattern}\\b`); // Removed 'g' flag
+                    formattedPhrase = formattedPhrase.replace(
+                        regex,
+                        `<span class="word" data-word-index="${index}">${word.source}</span>`
+                    );
+                });
+                
+                return formattedPhrase;
+            }
+            
+            // Create HTML for a phrase
+            function createPhraseHTML(phrase, isFavorite) {
+                const sourceLang = sourceLanguageSelect.value;
+                const targetLang = targetLanguageSelect.value;
+                
+                const sourceFlag = languageData[sourceLang].flag;
+                const targetFlag = languageData[targetLang].flag;
+                
+                // Format target phrase with word mapping
+                let formattedTarget = phrase.target;
+                
+                // Prepare word mappings if words exist
+                if (phrase.words && phrase.words.length > 0) {
+                    // Add markup for target words to enable highlighting
+                    phrase.words.forEach((word, index) => {
+                        // Only attempt replacement if target translation exists
+                        if (word.target) {
+                            const regexPattern = word.target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special chars
+                            const regex = new RegExp(`\\b${regexPattern}\\b`); // Removed 'g' flag
+                            formattedTarget = formattedTarget.replace(
+                                regex,
+                                `<span class="target-word" data-word-index="${index}">${word.target}</span>`
+                            );
+                        }
+                    });
+                }
+                
+                return `
+                    <div class="phrase-container" data-style="${phrase.style}">
+                        <div class="phrase-header">
+                            <button class="audio-btn" data-text="${phrase.source}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                                </svg>
+                            </button>
+                            <button class="favorite-btn ${isFavorite ? 'active' : ''}" data-source="${phrase.source}" data-target="${phrase.target}" data-style="${phrase.style}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="source-phrase">${sourceFlag} ${formatPhraseWithWords(phrase)}</div>
+                        <div class="target-phrase">${targetFlag} ${formattedTarget}</div>
+                            <div class="style-description">🔍 ${phrase.style}</div>
+                        </div>
+                    `;
+            }
+            
+            // Add event listeners to the results
+            function addEventListenersToResults() {
+                // Audio buttons
+                document.querySelectorAll('.audio-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const text = this.getAttribute('data-text');
+                        speakText(text);
+                    });
+                });
+                
+                // Favorite buttons
+                document.querySelectorAll('.favorite-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const source = this.getAttribute('data-source');
+                        const target = this.getAttribute('data-target');
+                        const style = this.getAttribute('data-style');
+                        
+                        toggleFavorite({source, target, style});
+                        
+                        // Toggle active class
+                        this.classList.toggle('active');
+                    });
+                });
+                
+                // Word hover and click events
+                document.querySelectorAll('.word').forEach(word => {
+                    // Click to hear pronunciation
+                    word.addEventListener('click', function() {
+                        // Get only the word text without any child elements
+                        const text = this.firstChild.textContent;
+                        speakText(text);
+                    });
+                    
+                    // Mouse events for highlighting corresponding target words
+                    word.addEventListener('mouseenter', function() {
+                        const wordIndex = this.getAttribute('data-word-index');
+                        const container = this.closest('.phrase-container');
+                        
+                        // Find and highlight corresponding target word
+                        const targetWord = container.querySelector(`.target-word[data-word-index="${wordIndex}"]`);
+                        if (targetWord) {
+                            targetWord.classList.add('highlight');
+                        }
+                    });
+                    
+                    word.addEventListener('mouseleave', function() {
+                        const wordIndex = this.getAttribute('data-word-index');
+                        const container = this.closest('.phrase-container');
+                        
+                        // Remove highlight from target word
+                        const targetWord = container.querySelector(`.target-word[data-word-index="${wordIndex}"]`);
+                        if (targetWord) {
+                            targetWord.classList.remove('highlight');
+                        }
+                    });
+                });
+                
+                // Add same events for target words to highlight source words
+                document.querySelectorAll('.target-word').forEach(targetWord => {
+                    targetWord.addEventListener('mouseenter', function() {
+                        const wordIndex = this.getAttribute('data-word-index');
+                        const container = this.closest('.phrase-container');
+                        
+                        // Find and highlight corresponding source word
+                        const sourceWord = container.querySelector(`.word[data-word-index="${wordIndex}"]`);
+                        if (sourceWord) {
+                            sourceWord.style.backgroundColor = 'rgba(90, 125, 42, 0.2)';
+                        }
+                    });
+                    
+                    targetWord.addEventListener('mouseleave', function() {
+                        const wordIndex = this.getAttribute('data-word-index');
+                        const container = this.closest('.phrase-container');
+                        
+                        // Remove highlight from source word
+                        const sourceWord = container.querySelector(`.word[data-word-index="${wordIndex}"]`);
+                        if (sourceWord) {
+                            sourceWord.style.backgroundColor = 'rgba(90, 125, 42, 0.05)';
+                        }
+                    });
+                });
+            }
+            
+            // Text-to-speech function
+            function speakText(text) {
+                if (!audioContext) {
+                    initAudioContext();
+                }
+                
+                const sourceLang = sourceLanguageSelect.value;
+                
+                // Language codes for TTS
+                const langCodes = {
+                    'italian': 'it-IT',
+                    'french': 'fr-FR',
+                    'spanish': 'es-ES',
+                    'german': 'de-DE',
+                    'portuguese': 'pt-PT',
+                    'polish': 'pl-PL',
+                    'swedish': 'sv-SE',
+                    'english': 'en-GB'
+                };
+                
+                // Cancel any ongoing speech
+                window.speechSynthesis.cancel();
+                
+                // Use Web Speech API for TTS
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = langCodes[sourceLang];
+                utterance.rate = 0.9;  // Slightly slower for learning
+                utterance.pitch = 1.0; // Normal pitch
+                utterance.volume = 1.0; // Full volume
+                
+                // Try to find a good voice for the language
+                const voices = window.speechSynthesis.getVoices();
+                const languageVoices = voices.filter(voice => voice.lang.startsWith(langCodes[sourceLang].split('-')[0]));
+                
+                // Prefer natural-sounding voices if available
+                const naturalVoice = languageVoices.find(voice => !voice.localService);
+                if (naturalVoice) {
+                    utterance.voice = naturalVoice;
+                } else if (languageVoices.length > 0) {
+                    utterance.voice = languageVoices[0];
+                }
+                
+                window.speechSynthesis.speak(utterance);
+            }
+            
+            // Ensure voices are loaded
+            if (window.speechSynthesis.onvoiceschanged !== undefined) {
+                window.speechSynthesis.onvoiceschanged = function() {
+                    console.log("Voices loaded:", window.speechSynthesis.getVoices().length);
+                };
+            }
+            
+            // Toggle favorite status
+            function toggleFavorite(phrase) {
+                const index = favorites.findIndex(fav => fav.source === phrase.source);
+                
+                if (index === -1) {
+                    // Add to favorites
+                    favorites.push(phrase);
+                } else {
+                    // Remove from favorites
+                    favorites.splice(index, 1);
+                }
+                
+                // Save to localStorage
+                localStorage.setItem('phrasesFavorites', JSON.stringify(favorites));
+                
+                // Update favorites UI
+                updateFavoritesUI();
+            }
+            
+            // Update favorites UI
+            function updateFavoritesUI() {
+                if (favorites.length === 0) {
+                    favoritesContainer.classList.remove('active');
+                    return;
+                }
+                
+                // Show favorites container
+                favoritesContainer.classList.add('active');
+                
+                // Create HTML for favorites
+                let html = '';
+                favorites.forEach(phrase => {
+                    html += createPhraseHTML(phrase, true);
+                });
+                
+                favoritesContent.innerHTML = html;
+                
+                // Add event listeners to favorites
+                addEventListenersToResults();
+            }
+            
+            // Filter phrases by style
+            function filterPhrasesByStyle(style) {
+                const phraseContainers = document.querySelectorAll('.phrase-container');
+                
+                if (style === 'all') {
+                    // Show all phrases
+                    phraseContainers.forEach(container => {
+                        container.style.display = 'block';
+                    });
+                } else {
+                    // Filter by style
+                    phraseContainers.forEach(container => {
+                        const phraseStyle = container.getAttribute('data-style');
+                        container.style.display = phraseStyle === style ? 'block' : 'none';
+                    });
+                }
+            }
+            
+            // Reset style filters
+            function resetStyleFilters() {
+                styleFilterBtns.forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.getAttribute('data-style') === 'all') {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+            
+            // Initialize favorites UI
+            updateFavoritesUI();
+        });
+    </script>
+</body>
+</html>

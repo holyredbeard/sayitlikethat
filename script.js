@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Log message to confirm script is running
+    console.log("*** NEW SCRIPT VERSION 1.0.1 LOADED ***");
+    console.log("Hover over any word to hear it pronounced immediately");
+    
     const categoryCards = document.querySelectorAll('.category-card');
     const resultsContent = document.getElementById('results-content');
     const loadMoreBtn = document.getElementById('load-more');
@@ -10,6 +14,95 @@ document.addEventListener('DOMContentLoaded', function() {
     const favoritesContent = document.getElementById('favorites-content');
     const navigationItems = document.querySelectorAll('.nav-item');
     const mainContentArea = document.querySelector('.categories-grid').parentElement;
+    const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+    
+    // Global variables for current state
+    let currentCategory = '';
+    let currentOffset = 0;
+    let currentStyle = 'all';
+    let phrasesData = [];
+    let audioContext = null;
+    let favorites = JSON.parse(localStorage.getItem('phrasesFavorites')) || [];
+    
+    // Add click event to category cards
+    categoryCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const category = this.getAttribute('data-category');
+            currentCategory = category;
+            currentOffset = 0;
+            currentStyle = 'all';
+            resetStyleFilters();
+            
+            // Show phrases heading, hide no-phrases heading
+            document.getElementById('phrases-title').style.display = 'block';
+            document.getElementById('no-phrases-title').style.display = 'none';
+            
+            // Uppdatera kategorititeln omedelbart
+            document.getElementById('current-category').textContent = category;
+            
+            // Highlight the selected category
+            categoryCards.forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            
+            // Scrolla direkt till resultatrubriken
+            document.getElementById('phrases-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // Add loading indication
+            resultsContent.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading phrases for ${category}...</p>
+                </div>
+            `;
+            
+            // Fetch phrases
+            fetchPhrases(category);
+        });
+    });
+    
+    // Mobile menu toggle
+    if (mobileMenuToggle) {
+        mobileMenuToggle.addEventListener('click', function() {
+            const navMenu = document.querySelector('.nav-menu');
+            const loginBtn = document.querySelector('.login-btn');
+            
+            navMenu.classList.toggle('active');
+            loginBtn.classList.toggle('active');
+            mobileMenuToggle.classList.toggle('active');
+            
+            // Toggle animation for hamburger icon
+            const bars = mobileMenuToggle.querySelectorAll('.bar');
+            if (mobileMenuToggle.classList.contains('active')) {
+                bars[0].style.transform = 'rotate(-45deg) translate(-5px, 6px)';
+                bars[1].style.opacity = '0';
+                bars[2].style.transform = 'rotate(45deg) translate(-5px, -6px)';
+            } else {
+                bars[0].style.transform = 'none';
+                bars[1].style.opacity = '1';
+                bars[2].style.transform = 'none';
+            }
+        });
+    }
+    
+    // Close mobile menu when clicking on a nav item
+    navigationItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const navMenu = document.querySelector('.nav-menu');
+            const loginBtn = document.querySelector('.login-btn');
+            
+            if (navMenu.classList.contains('active')) {
+                navMenu.classList.remove('active');
+                loginBtn.classList.remove('active');
+                mobileMenuToggle.classList.remove('active');
+                
+                // Reset hamburger icon
+                const bars = mobileMenuToggle.querySelectorAll('.bar');
+                bars[0].style.transform = 'none';
+                bars[1].style.opacity = '1';
+                bars[2].style.transform = 'none';
+            }
+        });
+    });
     
     // Handle navigation
     navigationItems.forEach(item => {
@@ -45,11 +138,32 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // Logotyp klick - visa frassidan
+    const logoLink = document.querySelector('.logo-link');
+    if (logoLink) {
+        logoLink.addEventListener('click', function(event) {
+            event.preventDefault();
+            
+            // Remove active class from all nav items
+            navigationItems.forEach(navItem => navItem.classList.remove('active'));
+            
+            // Add active class to Phrases nav item
+            const phrasesNavItem = Array.from(navigationItems).find(item => item.textContent.trim() === 'Phrases');
+            if (phrasesNavItem) {
+                phrasesNavItem.classList.add('active');
+            }
+            
+            // Show main content
+            showMainContent();
+        });
+    }
+    
     function showMainContent() {
         // Show the main content
         document.querySelector('.categories-grid').style.display = 'grid';
         document.querySelector('.category-instruction').style.display = 'block';
         document.querySelector('.results-container').style.display = 'block';
+        document.querySelector('.language-selectors').style.display = 'flex';
         
         // Hide favorites if visible
         favoritesContainer.style.display = 'none';
@@ -64,6 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelector('.categories-grid').style.display = 'none';
         document.querySelector('.category-instruction').style.display = 'none';
         document.querySelector('.results-container').style.display = 'none';
+        document.querySelector('.language-selectors').style.display = 'none';
         
         // Show favorites
         favoritesContainer.style.display = 'block';
@@ -74,6 +189,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // Hide any custom pages
         const customPages = document.querySelectorAll('.custom-page');
         customPages.forEach(page => page.remove());
+    }
+    
+    function hideMainContentComponents() {
+        // Hide the main content components
+        document.querySelector('.categories-grid').style.display = 'none';
+        document.querySelector('.category-instruction').style.display = 'none';
+        document.querySelector('.results-container').style.display = 'none';
+        document.querySelector('.language-selectors').style.display = 'none';
+        favoritesContainer.style.display = 'none';
     }
     
     function loadFavorites() {
@@ -99,10 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function showAboutPage() {
         // Hide the main content
-        document.querySelector('.categories-grid').style.display = 'none';
-        document.querySelector('.category-instruction').style.display = 'none';
-        document.querySelector('.results-container').style.display = 'none';
-        favoritesContainer.style.display = 'none';
+        hideMainContentComponents();
         
         // Remove any existing custom pages
         const customPages = document.querySelectorAll('.custom-page');
@@ -144,10 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function showContactPage() {
         // Hide the main content
-        document.querySelector('.categories-grid').style.display = 'none';
-        document.querySelector('.category-instruction').style.display = 'none';
-        document.querySelector('.results-container').style.display = 'none';
-        favoritesContainer.style.display = 'none';
+        hideMainContentComponents();
         
         // Remove any existing custom pages
         const customPages = document.querySelectorAll('.custom-page');
@@ -220,10 +338,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function showLoginPage() {
         // Hide the main content
-        document.querySelector('.categories-grid').style.display = 'none';
-        document.querySelector('.category-instruction').style.display = 'none';
-        document.querySelector('.results-container').style.display = 'none';
-        favoritesContainer.style.display = 'none';
+        hideMainContentComponents();
         
         // Remove any existing custom pages
         const customPages = document.querySelectorAll('.custom-page');
@@ -520,16 +635,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
-    // Load favorites from localStorage
-    let favorites = JSON.parse(localStorage.getItem('phrasesFavorites')) || [];
-    
-    // Current state
-    let currentCategory = '';
-    let currentOffset = 0;
-    let currentStyle = 'all';
-    let phrasesData = [];
-    let audioContext = null;
-    
     // Update language title when source language changes
     sourceLanguageSelect.addEventListener('change', function() {
         const selectedLang = this.value;
@@ -569,33 +674,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Category card click handler
-    categoryCards.forEach(card => {
-        card.addEventListener('click', function() {
-            const category = this.getAttribute('data-category');
-            currentCategory = category;
-            currentOffset = 0;
-            currentStyle = 'all';
-            resetStyleFilters();
-            
-            // Show phrases heading, hide no-phrases heading
-            document.getElementById('phrases-title').style.display = 'block';
-            document.getElementById('no-phrases-title').style.display = 'none';
-            
-            // Uppdatera kategorititeln omedelbart
-            document.getElementById('current-category').textContent = category;
-            
-            // Scrolla direkt till resultatrubriken
-            document.getElementById('phrases-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            
-            // Fetch phrases
-            fetchPhrases(category, currentOffset).then(() => {
-                // Scrolla igen efter att data har laddats, utan smooth för att undvika dubbel animation
-                document.getElementById('results-content').scrollIntoView({ block: 'start' });
-            });
-        });
-    });
-
     // Style filter buttons click handler
     styleFilterBtns.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -1115,7 +1193,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Replace each word with an interactive span
         phrase.words.forEach((word, index) => {
             const wordPattern = word.source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special regex characters
-            const regex = new RegExp(`\\b${wordPattern}\\b`); // Removed 'g' flag
+            const regex = new RegExp(`\\b${wordPattern}\\b`); // Use without 'g' flag to match first occurrence only
             formattedPhrase = formattedPhrase.replace(
                 regex,
                 `<span class="word" data-word-index="${index}">${word.source}</span>`
@@ -1144,7 +1222,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Only attempt replacement if target translation exists
                 if (word.target) {
                     const regexPattern = word.target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special chars
-                    const regex = new RegExp(`\\b${regexPattern}\\b`); // Removed 'g' flag
+                    const regex = new RegExp(`\\b${regexPattern}\\b`); // Use without 'g' flag to match first occurrence only
                     formattedTarget = formattedTarget.replace(
                         regex,
                         `<span class="target-word" data-word-index="${index}">${word.target}</span>`

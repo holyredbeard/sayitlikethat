@@ -4,32 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Say it like that - Master languages one phrase at a time</title>
+    <link rel="icon" href="assets/favicon.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <script src="script.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=1.0.1">
+    <script src="script.js?v=1.0.1" defer></script>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 </head>
 <body>
     <nav class="top-navigation">
         <div class="nav-container">
-            <div class="nav-left">
+            <a href="#" class="logo-link">
+                <img src="assets/logo.png" alt="Say it like that" class="nav-logo-img">
+            </a>
+            
+            <div class="nav-menu">
                 <a href="#" class="nav-item active">About</a>
                 <a href="#" class="nav-item">Phrases</a>
                 <a href="#" class="nav-item">Favorites</a>
                 <a href="#" class="nav-item">Contact</a>
             </div>
-            <div class="nav-right">
-                <a href="#" class="nav-item login-btn">Login / Signup</a>
-            </div>
+            
+            <a href="#" class="login-btn">Login / Signup</a>
+            
+            <button class="mobile-menu-toggle">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
         </div>
     </nav>
 
     <header>
-        <img src="assets/logo.png" alt="Say it like that" class="logo">
-        <p class="subtitle">Master languages one phrase at a time</p>
-        
-        <div class="language-selector">
+        <div class="language-selectors">
             <div class="language-select-group">
                 <label for="source-language">I want to learn:</label>
                 <select id="source-language">

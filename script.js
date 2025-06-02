@@ -6,15 +6,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add CSS for database indicator
     const dbIndicatorStyle = document.createElement('style');
     dbIndicatorStyle.textContent = `
+        .phrase-container {
+            position: relative;
+        }
+        
         .db-indicator {
-            font-size: 0.7rem;
-            background-color: #e3f2fd;
-            color: #1565c0;
-            padding: 1px 4px;
-            border-radius: 3px;
-            margin-left: 8px;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.75rem;
+            background-color: #1565c0;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
             font-weight: bold;
-            opacity: 0.7;
+            z-index: 10;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
         }
     `;
     document.head.appendChild(dbIndicatorStyle);
@@ -1390,7 +1397,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const styleTag = phrase.style ? `<span class="style-description">Style: ${phrase.style}</span>` : '';
         
         // Add a 'db' indicator if the phrase was loaded from database
-        const dbIndicator = phrase.fromDatabase ? `<span class="db-indicator">db</span>` : '';
+        const dbIndicator = phrase.fromDatabase ? `<span class="db-indicator">FROM DB</span>` : '';
         
         const userName = (onboardingData && onboardingData.name) ? onboardingData.name : 'Friend';
 
@@ -1426,11 +1433,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         return `
             <div class="phrase-container" data-id="${phraseId}" data-style="${phrase.style || ''}">
+                ${dbIndicator}
                 <div class="phrase-content">
                     <div class="phrase-header">
                         <p class="source-language-label">${sourceLangDisplay}</p>
                         <p class="target-language-label">${targetLangDisplay}</p>
-                        ${dbIndicator}
                     </div>
                     <p class="source-phrase">${formattedSourcePhrase}</p>
                     <p class="target-phrase">${formattedTargetPhrase}</p>

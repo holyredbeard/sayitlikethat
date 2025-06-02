@@ -3,177 +3,608 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Say it like that - Master languages one phrase at a time</title>
+    <title>Say it like that - Welcome!</title>
     <link rel="icon" href="assets/favicon.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Phosphor Icons -->
+    <!-- Using Nunito as per previous styling, can be changed -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link rel="stylesheet" href="style.css?v=1.0.2">
-    <script src="script.js?v=1.0.2" defer></script>
+    <link rel="stylesheet" href="style.css?v=1.0.3"> <!-- Increment version for cache busting -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    <script src="db.js?v=1.0.0"></script> <!-- Database module -->
+    <style>
+        /* Basic styles for onboarding - can be moved to style.css */
+        .onboarding-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: var(--background);
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .onboarding-step {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 500px; /* Max width for content */
+        }
+
+        .onboarding-step.active {
+            display: flex; /* Show active step */
+        }
+
+        .onboarding-step h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 1.5rem;
+        }
+        
+        .onboarding-step p {
+            font-size: 1rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .onboarding-step label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.75rem;
+            align-self: flex-start;
+        }
+
+        .onboarding-step input[type="text"],
+        .onboarding-step select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--border-radius);
+            font-family: var(--font-family);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            box-sizing: border-box;
+        }
+        
+        .onboarding-step input[type="text"]::placeholder {
+            color: var(--text-light);
+            opacity: 0.7;
+        }
+
+        .option-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+
+        .option-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            border: 1px solid var(--border-light);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            background-color: var(--card-bg);
+        }
+        
+        .option-button:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .option-button.selected {
+            border-color: var(--primary-color);
+            background-color: var(--primary-light);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .option-button i {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+        
+        .option-button span {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .onboarding-navigation {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 2rem;
+        }
+
+        .onboarding-btn {
+            font-family: var(--font-family);
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 10px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .onboarding-btn:hover {
+            background-color: var(--primary-hover);
+        }
+        
+        .onboarding-btn.secondary {
+            background-color: transparent;
+            color: var(--text-light);
+            border: 1px solid var(--border-light);
+        }
+        .onboarding-btn.secondary:hover {
+            background-color: var(--border-light);
+            color: var(--text-dark);
+        }
+
+        #main-app-content {
+            display: none; /* Hidden by default */
+            position: relative; /* Needed for absolute positioning of reset button */
+        }
+
+        #reset-onboarding-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 15px;
+            background-color: #dc3545; /* Red color for reset/danger */
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-family: var(--font-family);
+            font-size: 0.9rem;
+            z-index: 1001; /* Ensure it's above other nav elements */
+        }
+        #reset-onboarding-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
 </head>
 <body>
-    <nav class="top-navigation">
-        <div class="nav-container">
-            <a href="#" class="logo-link">
-                <img src="assets/logo.png" alt="Say it like that" class="nav-logo-img">
-            </a>
+
+    <div id="onboarding-section" class="onboarding-container">
+        <!-- Step 1: Name (Optional) -->
+        <div id="step-1" class="onboarding-step active">
+            <h2>Welcome to Say it like that!</h2>
+            <label for="onboarding-name">What's your name?</label>
+            <input type="text" id="onboarding-name" placeholder="E.g., Alex">
+            <p>You can skip this if you like.</p>
+            <div class="onboarding-navigation">
+                <button type="button" class="onboarding-btn" onclick="nextStep()">Next <i class="ph ph-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- Step 2: Purpose -->
+        <div id="step-2" class="onboarding-step">
+            <h2>What's your main goal?</h2>
+            <div class="option-buttons" data-field="purpose">
+                <button type="button" class="option-button" data-value="travel"><i class="ph ph-airplane-takeoff"></i><span>Travel</span></button>
+                <button type="button" class="option-button" data-value="work"><i class="ph ph-briefcase"></i><span>Work</span></button>
+                <button type="button" class="option-button" data-value="study"><i class="ph ph-student"></i><span>Study</span></button>
+                <button type="button" class="option-button" data-value="move"><i class="ph ph-house-line"></i><span>Move</span></button>
+                <button type="button" class="option-button" data-value="love"><i class="ph ph-heart"></i><span>Love / Relation</span></button>
+                <button type="button" class="option-button" data-value="fun"><i class="ph ph-game-controller"></i><span>Just for fun</span></button>
+            </div>
+            <div class="onboarding-navigation">
+                <button type="button" class="onboarding-btn secondary" onclick="prevStep()"><i class="ph ph-arrow-left"></i> Back</button>
+                <button type="button" class="onboarding-btn" onclick="nextStep()">Next <i class="ph ph-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- Step 3: Proficiency -->
+        <div id="step-3" class="onboarding-step">
+            <h2>How much do you already know?</h2>
+            <div class="option-buttons" data-field="proficiency">
+                <button type="button" class="option-button" data-value="beginner"><i class="ph ph-baby"></i><span>Beginner</span></button>
+                <button type="button" class="option-button" data-value="some"><i class="ph ph-smiley"></i><span>Know a little</span></button>
+                <button type="button" class="option-button" data-value="conversational"><i class="ph ph-chats-circle"></i><span>Can hold a conversation</span></button>
+                <button type="button" class="option-button" data-value="fluent"><i class="ph ph-rocket-launch"></i><span>Almost fluent</span></button>
+            </div>
+            <div class="onboarding-navigation">
+                <button type="button" class="onboarding-btn secondary" onclick="prevStep()"><i class="ph ph-arrow-left"></i> Back</button>
+                <button type="button" class="onboarding-btn" onclick="nextStep()">Next <i class="ph ph-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- Step 4: Learning Style -->
+        <div id="step-4" class="onboarding-step">
+            <h2>How do you prefer to learn?</h2>
+            <div class="option-buttons" data-field="learningStyle">
+                <button type="button" class="option-button" data-value="fast"><i class="ph ph-timer"></i><span>Fast and efficient</span></button>
+                <button type="button" class="option-button" data-value="fun"><i class="ph ph-confetti"></i><span>Playful and fun</span></button>
+                <button type="button" class="option-button" data-value="deep"><i class="ph ph-books"></i><span>Deep and structured</span></button>
+            </div>
+            <div class="onboarding-navigation">
+                <button type="button" class="onboarding-btn secondary" onclick="prevStep()"><i class="ph ph-arrow-left"></i> Back</button>
+                <button type="button" class="onboarding-btn" onclick="nextStep()">Next <i class="ph ph-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- Step 5: Language to Learn -->
+        <div id="step-5" class="onboarding-step">
+            <h2>Which language do you want to learn?</h2>
+            <select id="onboarding-language-to-learn">
+                <option value="">Select a language</option>
+                <option value="italian">🇮🇹 Italian</option>
+                <option value="french">🇫🇷 French</option>
+                <option value="spanish">🇪🇸 Spanish</option>
+                <option value="german">🇩🇪 German</option>
+                <option value="portuguese">🇵🇹 Portuguese</option>
+                <option value="polish">🇵🇱 Polish</option>
+                <option value="swedish">🇸🇪 Swedish</option>
+                 <!-- Add more languages as needed -->
+            </select>
+            <div class="onboarding-navigation">
+                <button type="button" class="onboarding-btn secondary" onclick="prevStep()"><i class="ph ph-arrow-left"></i> Back</button>
+                <button type="button" class="onboarding-btn" onclick="nextStep()">Next <i class="ph ph-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- Step 6: Translation Language -->
+        <div id="step-6" class="onboarding-step">
+            <h2>Which language for translations?</h2>
+            <select id="onboarding-translation-language">
+                <option value="">Select a language</option>
+                <option value="english">🇬🇧 English</option>
+                <option value="italian">🇮🇹 Italian</option>
+                <option value="french">🇫🇷 French</option>
+                <option value="spanish">🇪🇸 Spanish</option>
+                <option value="german">🇩🇪 German</option>
+                <option value="portuguese">🇵🇹 Portuguese</option>
+                <option value="polish">🇵🇱 Polish</option>
+                <option value="swedish">🇸🇪 Swedish</option>
+                <!-- Add more languages as needed -->
+            </select>
+            <div class="onboarding-navigation">
+                <button type="button" class="onboarding-btn secondary" onclick="prevStep()"><i class="ph ph-arrow-left"></i> Back</button>
+                <button type="button" class="onboarding-btn" onclick="finishOnboarding()">Let's Go! <i class="ph ph-sparkle"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-app-content">
+        <button id="reset-onboarding-btn">Reset Onboarding</button>
+        <!-- Existing content from index.html goes here -->
+        <nav class="top-navigation">
+            <div class="nav-container">
+                <a href="#" class="logo-link">
+                    <img src="assets/logo.png" alt="Say it like that" class="nav-logo-img">
+                </a>
+                
+                <div class="nav-menu">
+                    <a href="#" class="nav-item active" id="home-link">Home</a>
+                    <a href="#" class="nav-item" id="practice-link">Practice</a>
+                    <a href="#" class="nav-item" id="about-link">About</a>
+                    <a href="admin.html" class="nav-item">Database Admin</a>
+                </div>
+                
+                <a href="#" class="login-btn">Login / Signup</a>
+                
+                <button class="mobile-menu-toggle">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+            </div>
+        </nav>
+    
+        <header>
+            <div class="language-selectors">
+                <div class="language-select-group">
+                    <label for="source-language">I want to learn:</label>
+                    <select id="source-language">
+                        <option value="italian">🇮🇹 Italian</option>
+                        <option value="french">🇫🇷 French</option>
+                        <option value="spanish">🇪🇸 Spanish</option>
+                        <option value="german">🇩🇪 German</option>
+                        <option value="portuguese">🇵🇹 Portuguese</option>
+                        <option value="polish">🇵🇱 Polish</option>
+                        <option value="swedish">🇸🇪 Swedish</option>
+                    </select>
+                </div>
+                
+                <div class="language-select-group">
+                    <label for="target-language">Show translations in:</label>
+                    <select id="target-language">
+                        <option value="english">🇬🇧 English</option>
+                        <option value="italian">🇮🇹 Italian</option>
+                        <option value="french">🇫🇷 French</option>
+                        <option value="spanish">🇪🇸 Spanish</option>
+                        <option value="german">🇩🇪 German</option>
+                        <option value="portuguese">🇵🇹 Portuguese</option>
+                        <option value="polish">🇵🇱 Polish</option>
+                        <option value="swedish">🇸🇪 Swedish</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+    
+        <h2 class="category-instruction">Select a category to learn phrases</h2>
+    
+        <div class="categories-grid">
+            <div class="category-card" data-category="Shopping" data-purpose-tags="travel,fun,moving">
+                <span class="category-icon"><i class="ph ph-shopping-cart"></i></span> 
+                <span class="category-card-text">Shopping</span>
+            </div>
+            <div class="category-card" data-category="Ordering at a café" data-purpose-tags="travel,fun,moving,love">
+                <span class="category-icon"><i class="ph ph-coffee"></i></span> 
+                <span class="category-card-text">Ordering at a café</span>
+            </div>
+            <div class="category-card" data-category="Asking for directions" data-purpose-tags="travel,moving">
+                <span class="category-icon"><i class="ph ph-map-pin"></i></span> 
+                <span class="category-card-text">Asking for directions</span>
+            </div>
+            <div class="category-card" data-category="Phone call" data-purpose-tags="work,moving,study">
+                <span class="category-icon"><i class="ph ph-phone"></i></span> 
+                <span class="category-card-text">Phone call</span>
+            </div>
+            <div class="category-card" data-category="Greetings / small talk" data-purpose-tags="travel,work,study,moving,love,fun">
+                <span class="category-icon"><i class="ph ph-hand-waving"></i></span> 
+                <span class="category-card-text">Greetings / small talk</span>
+            </div>
+            <div class="category-card" data-category="Asking for help" data-purpose-tags="travel,work,study,moving,fun">
+                <span class="category-icon"><i class="ph ph-question"></i></span> 
+                <span class="category-card-text">Asking for help</span>
+            </div>
+            <div class="category-card" data-category="At the post office" data-purpose-tags="moving,work">
+                <span class="category-icon"><i class="ph ph-envelope"></i></span> 
+                <span class="category-card-text">At the post office</span>
+            </div>
+            <div class="category-card" data-category="At the doctor" data-purpose-tags="moving,travel">
+                <span class="category-icon"><i class="ph ph-first-aid-kit"></i></span> 
+                <span class="category-card-text">At the doctor</span>
+            </div>
+            <div class="category-card" data-category="Neighbors / housing" data-purpose-tags="moving">
+                <span class="category-icon"><i class="ph ph-house"></i></span> 
+                <span class="category-card-text">Neighbors / housing</span>
+            </div>
+            <div class="category-card" data-category="Food & restaurant" data-purpose-tags="travel,fun,moving,love">
+                <span class="category-icon"><i class="ph ph-fork-knife"></i></span> 
+                <span class="category-card-text">Food & restaurant</span>
+            </div>
+            <div class="category-card" data-category="Complaints" data-purpose-tags="travel,moving,work">
+                <span class="category-icon"><i class="ph ph-warning"></i></span> 
+                <span class="category-card-text">Complaints</span>
+            </div>
+            <div class="category-card" data-category="Flirting" data-purpose-tags="love,fun">
+                <span class="category-icon"><i class="ph ph-heart"></i></span> 
+                <span class="category-card-text">Flirting</span>
+            </div>
+            <div class="category-card" data-category="Work" data-purpose-tags="work,study">
+                <span class="category-icon"><i class="ph ph-briefcase"></i></span> 
+                <span class="category-card-text">Work</span>
+            </div>
+            <div class="category-card" data-category="Tourist questions" data-purpose-tags="travel,fun">
+                <span class="category-icon"><i class="ph ph-camera"></i></span> 
+                <span class="category-card-text">Tourist questions</span>
+            </div>
+        </div>
+    
+        <div class="favorites-container">
+            <h2 class="favorites-title">
+                <i class="ph ph-star-fill" style="color: var(--accent-orange);"></i>
+                My Favorite Phrases
+            </h2>
+            <div id="favorites-content">
+                <!-- Favorite phrases will be displayed here -->
+            </div>
+        </div>
+    
+        <div class="results-container">
+            <h2 class="results-title" id="phrases-title">Phrases for: <span id="current-category">Select a category</span></h2>
+            <h2 class="results-title" id="no-phrases-title">Select a category above to see phrases</h2>
             
-            <div class="nav-menu">
-                <a href="#" class="nav-item active">About</a>
-                <a href="#" class="nav-item">Phrases</a>
-                <a href="#" class="nav-item">Favorites</a>
-                <a href="#" class="nav-item">Contact</a>
+            <div class="style-filter-container">
+                <button class="style-filter-btn active" data-style="all">All</button>
+                <button class="style-filter-btn" data-style="Casual">Casual</button>
+                <button class="style-filter-btn" data-style="Polite">Polite</button>
+                <button class="style-filter-btn" data-style="Formal">Formal</button>
+                <button class="style-filter-btn" data-style="Direct">Direct</button>
+                <button class="style-filter-btn" data-style="Slang">Slang</button>
+                <button class="style-filter-btn" data-style="Enthusiastic">Enthusiastic</button>
             </div>
             
-            <a href="#" class="login-btn">Login / Signup</a>
+            <div id="results-content">
+                <!-- Results will be displayed here -->
+            </div>
             
-            <button class="mobile-menu-toggle">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
+            <button id="load-more" class="btn load-more-btn">
+                More phrases <i class="ph ph-arrow-down"></i>
             </button>
         </div>
-    </nav>
-
-    <header>
-        <div class="language-selectors">
-            <div class="language-select-group">
-                <label for="source-language">I want to learn:</label>
-                <select id="source-language">
-                    <option value="italian">🇮🇹 Italian</option>
-                    <option value="french">🇫🇷 French</option>
-                    <option value="spanish">🇪🇸 Spanish</option>
-                    <option value="german">🇩🇪 German</option>
-                    <option value="portuguese">🇵🇹 Portuguese</option>
-                    <option value="polish">🇵🇱 Polish</option>
-                    <option value="swedish">🇸🇪 Swedish</option>
-                </select>
+    
+        <!-- CTA Section -->
+        <div class="cta-container">
+            <div class="cta-content">
+                <h3>Love this? Unlock more categories, export tools and upcoming languages!</h3>
+                <div class="cta-buttons">
+                    <a href="#" class="cta-btn pro-btn">Go Pro <i class="ph ph-crown"></i></a>
+                    <a href="https://ko-fi.com/" target="_blank" class="cta-btn kofi-btn">Support via Ko-fi <i class="ph ph-coffee"></i></a>
+                </div>
             </div>
+        </div>
+        <!-- End of existing content -->
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 6;
+        const onboardingData = {};
+
+        function showStep(stepNumber) {
+            document.querySelectorAll('.onboarding-step').forEach(step => {
+                step.classList.remove('active');
+            });
+            document.getElementById(`step-${stepNumber}`).classList.add('active');
+        }
+
+        function nextStep() {
+            if (!validateStep(currentStep)) return;
+            saveStepData(currentStep);
+            if (currentStep < totalSteps) {
+                currentStep++;
+                showStep(currentStep);
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+        
+        function validateStep(stepNumber) {
+            // Basic validation, can be expanded
+            if (stepNumber === 2 || stepNumber === 3 || stepNumber === 4) { // Steps with option buttons
+                const field = document.getElementById(`step-${stepNumber}`).querySelector('.option-buttons').dataset.field;
+                if (!onboardingData[field]) {
+                    alert('Please make a selection.');
+                    return false;
+                }
+            }
+            if (stepNumber === 5) {
+                 if (!document.getElementById('onboarding-language-to-learn').value) {
+                    alert('Please select a language to learn.');
+                    return false;
+                 }
+            }
+            if (stepNumber === 6) {
+                 if (!document.getElementById('onboarding-translation-language').value) {
+                    alert('Please select a translation language.');
+                    return false;
+                 }
+            }
+            return true;
+        }
+
+        function saveStepData(stepNumber) {
+            switch (stepNumber) {
+                case 1:
+                    onboardingData.name = document.getElementById('onboarding-name').value || 'Friend'; // Default if empty
+                    break;
+                // For steps 2, 3, 4, data is saved by option button clicks
+                case 5:
+                    onboardingData.languageToLearn = document.getElementById('onboarding-language-to-learn').value;
+                    break;
+                case 6:
+                    onboardingData.translationLanguage = document.getElementById('onboarding-translation-language').value;
+                    break;
+            }
+        }
+        
+        document.querySelectorAll('.option-buttons').forEach(container => {
+            container.addEventListener('click', function(event) {
+                const button = event.target.closest('.option-button');
+                if (button) {
+                    const field = container.dataset.field;
+                    const value = button.dataset.value;
+                    
+                    // Remove 'selected' from siblings
+                    container.querySelectorAll('.option-button').forEach(btn => btn.classList.remove('selected'));
+                    // Add 'selected' to clicked button
+                    button.classList.add('selected');
+                    
+                    onboardingData[field] = value;
+                }
+            });
+        });
+
+        function finishOnboarding() {
+            if (!validateStep(currentStep)) return;
+            saveStepData(currentStep);
+            localStorage.setItem('onboardingCompleted', 'true');
+            localStorage.setItem('onboardingData', JSON.stringify(onboardingData));
             
-            <div class="language-select-group">
-                <label for="target-language">Show translations in:</label>
-                <select id="target-language">
-                    <option value="english">🇬🇧 English</option>
-                    <option value="italian">🇮🇹 Italian</option>
-                    <option value="french">🇫🇷 French</option>
-                    <option value="spanish">🇪🇸 Spanish</option>
-                    <option value="german">🇩🇪 German</option>
-                    <option value="portuguese">🇵🇹 Portuguese</option>
-                    <option value="polish">🇵🇱 Polish</option>
-                    <option value="swedish">🇸🇪 Swedish</option>
-                </select>
-            </div>
-        </div>
-    </header>
+            document.getElementById('onboarding-section').style.display = 'none';
+            document.getElementById('main-app-content').style.display = 'block';
+            document.getElementById('reset-onboarding-btn').style.display = 'block'; // Show reset button
+            
+            // Here you would typically call a function to initialize the main app with onboardingData
+            console.log('Onboarding complete! Data:', onboardingData);
+            // For example: initializeMainApp(onboardingData);
+            // This would then use the data to set language dropdowns, filter categories, etc.
+             // Set the language selectors in the main app
+            if (onboardingData.languageToLearn) {
+                document.getElementById('source-language').value = onboardingData.languageToLearn;
+            }
+            if (onboardingData.translationLanguage) {
+                document.getElementById('target-language').value = onboardingData.translationLanguage;
+            }
+             // Potentially trigger a function in your existing script.js to load categories/phrases
+            if (typeof loadCategoriesAndPhrases === 'function') { // Check if your main script function exists
+                 loadCategoriesAndPhrases(); // Or pass specific parameters based on onboardingData
+            }
+        }
 
-    <h2 class="category-instruction">Select a category to learn phrases</h2>
+        // Check if onboarding was already completed
+        if (localStorage.getItem('onboardingCompleted') === 'true') {
+            const storedData = JSON.parse(localStorage.getItem('onboardingData'));
+            if (storedData) {
+                // Use storedData to pre-fill or skip onboarding logic
+                // For now, just skip and show main app
+                Object.assign(onboardingData, storedData); // Load data for potential use
+                document.getElementById('onboarding-section').style.display = 'none';
+                document.getElementById('main-app-content').style.display = 'block';
+                document.getElementById('reset-onboarding-btn').style.display = 'block'; // Show reset button
 
-    <div class="categories-grid">
-        <div class="category-card" data-category="Shopping">
-            <span class="category-icon"><i class="ph ph-shopping-cart"></i></span> 
-            <span class="category-card-text">Shopping</span>
-        </div>
-        <div class="category-card" data-category="Ordering at a café">
-            <span class="category-icon"><i class="ph ph-coffee"></i></span> 
-            <span class="category-card-text">Ordering at a café</span>
-        </div>
-        <div class="category-card" data-category="Asking for directions">
-            <span class="category-icon"><i class="ph ph-map-pin"></i></span> 
-            <span class="category-card-text">Asking for directions</span>
-        </div>
-        <div class="category-card" data-category="Phone call">
-            <span class="category-icon"><i class="ph ph-phone"></i></span> 
-            <span class="category-card-text">Phone call</span>
-        </div>
-        <div class="category-card" data-category="Greetings / small talk">
-            <span class="category-icon"><i class="ph ph-hand-waving"></i></span> 
-            <span class="category-card-text">Greetings / small talk</span>
-        </div>
-        <div class="category-card" data-category="Asking for help">
-            <span class="category-icon"><i class="ph ph-question"></i></span> 
-            <span class="category-card-text">Asking for help</span>
-        </div>
-        <div class="category-card" data-category="At the post office">
-            <span class="category-icon"><i class="ph ph-envelope"></i></span> 
-            <span class="category-card-text">At the post office</span>
-        </div>
-        <div class="category-card" data-category="At the doctor">
-            <span class="category-icon"><i class="ph ph-first-aid-kit"></i></span> 
-            <span class="category-card-text">At the doctor</span>
-        </div>
-        <div class="category-card" data-category="Neighbors / housing">
-            <span class="category-icon"><i class="ph ph-house"></i></span> 
-            <span class="category-card-text">Neighbors / housing</span>
-        </div>
-        <div class="category-card" data-category="Food & restaurant">
-            <span class="category-icon"><i class="ph ph-fork-knife"></i></span> 
-            <span class="category-card-text">Food & restaurant</span>
-        </div>
-        <div class="category-card" data-category="Complaints">
-            <span class="category-icon"><i class="ph ph-warning"></i></span> 
-            <span class="category-card-text">Complaints</span>
-        </div>
-        <div class="category-card" data-category="Flirting">
-            <span class="category-icon"><i class="ph ph-heart"></i></span> 
-            <span class="category-card-text">Flirting</span>
-        </div>
-        <div class="category-card" data-category="Work">
-            <span class="category-icon"><i class="ph ph-briefcase"></i></span> 
-            <span class="category-card-text">Work</span>
-        </div>
-        <div class="category-card" data-category="Tourist questions">
-            <span class="category-icon"><i class="ph ph-camera"></i></span> 
-            <span class="category-card-text">Tourist questions</span>
-        </div>
-    </div>
-
-    <div class="favorites-container">
-        <h2 class="favorites-title">
-            <i class="ph ph-star-fill" style="color: var(--accent-orange);"></i>
-            My Favorite Phrases
-        </h2>
-        <div id="favorites-content">
-            <!-- Favorite phrases will be displayed here -->
-        </div>
-    </div>
-
-    <div class="results-container">
-        <h2 class="results-title" id="phrases-title">Phrases for: <span id="current-category">Select a category</span></h2>
-        <h2 class="results-title" id="no-phrases-title">Select a category above to see phrases</h2>
+                // Set the language selectors in the main app
+                if (onboardingData.languageToLearn) {
+                    document.getElementById('source-language').value = onboardingData.languageToLearn;
+                }
+                if (onboardingData.translationLanguage) {
+                    document.getElementById('target-language').value = onboardingData.translationLanguage;
+                }
+                // Potentially trigger a function in your existing script.js to load categories/phrases
+                if (typeof loadCategoriesAndPhrases === 'function') { 
+                     loadCategoriesAndPhrases();
+                }
+                console.log('Skipped onboarding. Loaded data:', onboardingData);
+            } else {
+                 showStep(currentStep); // Show first step if no data
+            }
+        } else {
+            showStep(currentStep); // Show first step if not completed
+        }
         
-        <div class="style-filter-container">
-            <button class="style-filter-btn active" data-style="all">All</button>
-            <button class="style-filter-btn" data-style="Casual">Casual</button>
-            <button class="style-filter-btn" data-style="Polite">Polite</button>
-            <button class="style-filter-btn" data-style="Formal">Formal</button>
-            <button class="style-filter-btn" data-style="Direct">Direct</button>
-            <button class="style-filter-btn" data-style="Slang">Slang</button>
-            <button class="style-filter-btn" data-style="Enthusiastic">Enthusiastic</button>
-        </div>
-        
-        <div id="results-content">
-            <!-- Results will be displayed here -->
-        </div>
-        
-        <button id="load-more" class="btn load-more-btn">
-            More phrases <i class="ph ph-arrow-down"></i>
-        </button>
-    </div>
+        // Ensure Phosphor icons are rendered
+        if (typeof PhosphorIcons !== 'undefined' && typeof PhosphorIcons.icons !== 'undefined') {
+            PhosphorIcons.replaceAll();
+        }
 
-    <!-- CTA Section -->
-    <div class="cta-container">
-        <div class="cta-content">
-            <h3>Love this? Unlock more categories, export tools and upcoming languages!</h3>
-            <div class="cta-buttons">
-                <a href="#" class="cta-btn pro-btn">Go Pro <i class="ph ph-crown"></i></a>
-                <a href="https://ko-fi.com/" target="_blank" class="cta-btn kofi-btn">Support via Ko-fi <i class="ph ph-coffee"></i></a>
-            </div>
-        </div>
-    </div>
+        // Event listener for the reset button
+        const resetBtn = document.getElementById('reset-onboarding-btn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function() {
+                localStorage.removeItem('onboardingCompleted');
+                localStorage.removeItem('onboardingData');
+                window.location.reload();
+            });
+        } else {
+            console.error("Reset button not found after main content display attempt.");
+        }
+
+    </script>
+    <!-- Ensure your main script.js is loaded after the inline script if it has dependencies or needs to be aware of it -->
+    <script src="script.js?v=1.0.2" defer></script>
 </body>
 </html>

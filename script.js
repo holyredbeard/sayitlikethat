@@ -1,7 +1,16 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Log message to confirm script is running
-    console.log("*** NEW SCRIPT VERSION 1.0.2 LOADED ***");
+    console.log("*** NEW SCRIPT VERSION 1.0.3 LOADED ***");
     console.log("Click on any word to hear it pronounced");
+    
+    // Initialize the database
+    window.phraseDB.init()
+        .then(() => {
+            console.log("Database initialized successfully");
+        })
+        .catch(error => {
+            console.error("Failed to initialize database:", error);
+        });
     
     const categoryCards = document.querySelectorAll('.category-card');
     const resultsContent = document.getElementById('results-content');
@@ -729,55 +738,102 @@ document.addEventListener('DOMContentLoaded', function() {
             const sourceLang = sourceLanguageSelect.value;
             const targetLang = targetLanguageSelect.value;
             
-            // För första begäran eller om API-anrop misslyckas, använd exempeldata som fallback
+            // För första begäran
             let data;
             let waitingForApiResponse = true; // Flag to track if we're still waiting for API
             let fallbackDataDisplayed = false; // Flag to track if fallback data has been displayed
             
             if (offset === 0) {
+                // First, try to get phrases from the database
                 try {
-                    // Försök att hämta fraser från DeepSeek API med timeout
-                    const timeoutPromise = new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error('API request timed out')), 40000)); // Increased to 40 seconds
+                    const dbPhrases = await window.phraseDB.getPhrasesByCategory(category, sourceLang);
                     
-                    // Start the API request
-                    const apiRequestPromise = fetchPhrasesFromDeepSeek(category, sourceLang, targetLang);
-                    
-                    // Also create a way to continue with API data even after timeout
-                    apiRequestPromise.then(apiData => {
-                        // If we get here, the API responded eventually
-                        console.log('API eventually responded successfully');
-                        if (fallbackDataDisplayed && waitingForApiResponse) {
-                            // If fallback data was already displayed but we're still on this category
-                            console.log('Replacing fallback data with actual API response');
-                            phrasesData = apiData;
-                            displayResults(apiData, category);
-                            styleFilterContainer.style.display = 'flex';
-                            loadMoreBtn.style.display = 'block';
+                    // If we have phrases in the database, use them
+                    if (dbPhrases && dbPhrases.length > 0) {
+                        console.log(`Using ${dbPhrases.length} phrases from database for category "${category}"`);
+                        data = dbPhrases;
+                        waitingForApiResponse = false; // Don't need to wait for API
+                    } else {
+                        // If no phrases in database, try the API
+                        console.log(`No phrases in database for category "${category}", trying API`);
+                        try {
+                            // Försök att hämta fraser från DeepSeek API med timeout
+                            const timeoutPromise = new Promise((_, reject) => 
+                                setTimeout(() => reject(new Error('API request timed out')), 40000)); // Increased to 40 seconds
+                            
+                            // Start the API request
+                            const apiRequestPromise = fetchPhrasesFromDeepSeek(category, sourceLang, targetLang);
+                            
+                            // Also create a way to continue with API data even after timeout
+                            apiRequestPromise.then(apiData => {
+                                // If we get here, the API responded eventually
+                                console.log('API eventually responded successfully');
+                                
+                                // Save the phrases to the database for future use
+                                window.phraseDB.savePhrases(apiData, category)
+                                    .then(count => console.log(`Saved ${count} phrases to database`))
+                                    .catch(err => console.error('Error saving phrases to database:', err));
+                                
+                                if (fallbackDataDisplayed && waitingForApiResponse) {
+                                    // If fallback data was already displayed but we're still on this category
+                                    console.log('Replacing fallback data with actual API response');
+                                    phrasesData = apiData;
+                                    displayResults(apiData, category);
+                                    styleFilterContainer.style.display = 'flex';
+                                    loadMoreBtn.style.display = 'block';
+                                }
+                                waitingForApiResponse = false;
+                            }).catch(e => {
+                                // This only happens if the API call itself fails (not just times out)
+                                console.error('API call failed even after timeout:', e);
+                                waitingForApiResponse = false;
+                            });
+                            
+                            // Race the API request against the timeout
+                            try {
+                                data = await Promise.race([apiRequestPromise, timeoutPromise]);
+                                
+                                // Save the phrases to the database for future use
+                                window.phraseDB.savePhrases(data, category)
+                                    .then(count => console.log(`Saved ${count} phrases to database`))
+                                    .catch(err => console.error('Error saving phrases to database:', err));
+                                
+                                waitingForApiResponse = false; // Got data before timeout
+                            } catch (timeoutError) {
+                                console.error('Error with DeepSeek API, falling back to sample data:', timeoutError);
+                                // Fallback till exempeldata
+                                data = generateSampleData(category);
+                                fallbackDataDisplayed = true;
+                                // But keep waitingForApiResponse as true
+                            }
+                        } catch (apiError) {
+                            console.error('Error with DeepSeek API, falling back to sample data:', apiError);
+                            // Fallback till exempeldata
+                            data = generateSampleData(category);
+                            waitingForApiResponse = false; // Don't wait anymore
                         }
-                        waitingForApiResponse = false;
-                    }).catch(e => {
-                        // This only happens if the API call itself fails (not just times out)
-                        console.error('API call failed even after timeout:', e);
-                        waitingForApiResponse = false;
-                    });
-                    
-                    // Race the API request against the timeout
-                    try {
-                        data = await Promise.race([apiRequestPromise, timeoutPromise]);
-                        waitingForApiResponse = false; // Got data before timeout
-                    } catch (timeoutError) {
-                        console.error('Error with DeepSeek API, falling back to sample data:', timeoutError);
-                        // Fallback till exempeldata
-                        data = generateSampleData(category);
-                        fallbackDataDisplayed = true;
-                        // But keep waitingForApiResponse as true
                     }
-                } catch (apiError) {
-                    console.error('Error with DeepSeek API, falling back to sample data:', apiError);
-                    // Fallback till exempeldata
-                    data = generateSampleData(category);
-                    waitingForApiResponse = false; // Don't wait anymore
+                } catch (dbError) {
+                    console.error('Error accessing database:', dbError);
+                    // Proceed with API call as fallback
+                    try {
+                        // Försök att hämta fraser från DeepSeek API med timeout
+                        const timeoutPromise = new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('API request timed out')), 40000));
+                        
+                        const apiRequestPromise = fetchPhrasesFromDeepSeek(category, sourceLang, targetLang);
+                        data = await Promise.race([apiRequestPromise, timeoutPromise]);
+                        
+                        // Save to database if successful
+                        window.phraseDB.savePhrases(data, category)
+                            .then(count => console.log(`Saved ${count} phrases to database`))
+                            .catch(err => console.error('Error saving phrases to database:', err));
+                        
+                    } catch (apiError) {
+                        console.error('Error with DeepSeek API, falling back to sample data:', apiError);
+                        // Fallback to sample data
+                        data = generateSampleData(category);
+                    }
                 }
                 
                 phrasesData = data;
@@ -785,19 +841,59 @@ document.addEventListener('DOMContentLoaded', function() {
                 styleFilterContainer.style.display = 'flex';
                 loadMoreBtn.style.display = 'block';
             } else {
-                // För efterföljande laddningar, försök att få fler fraser från DeepSeek API
+                // För efterföljande laddningar (offset > 0)
                 let newData;
+                
+                // First, try to get more phrases from the database
                 try {
-                    // Försök att få fler fraser från DeepSeek API
-                    const timeoutPromise = new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error('API request timed out')), 40000)); // Increased to 40 seconds
+                    // This is a simplified approach - in a real app, you'd need pagination in the DB
+                    const allDbPhrases = await window.phraseDB.getPhrasesByCategory(category, sourceLang);
                     
-                    const apiRequestPromise = fetchPhrasesFromDeepSeek(category, sourceLang, targetLang, offset);
-                    newData = await Promise.race([apiRequestPromise, timeoutPromise]);
-                } catch (apiError) {
-                    console.error('Error getting more phrases from DeepSeek, using generated variations:', apiError);
-                    // Fallback till genererade variationer
-                    newData = generateMorePhrases(phrasesData, offset);
+                    // If we have enough phrases in the database, use them
+                    if (allDbPhrases && allDbPhrases.length > offset + 3) {
+                        newData = allDbPhrases.slice(offset, offset + 3);
+                        console.log(`Using ${newData.length} more phrases from database for category "${category}"`);
+                    } else {
+                        // If not enough phrases in database, try the API
+                        try {
+                            // Försök att få fler fraser från DeepSeek API
+                            const timeoutPromise = new Promise((_, reject) => 
+                                setTimeout(() => reject(new Error('API request timed out')), 40000));
+                            
+                            const apiRequestPromise = fetchPhrasesFromDeepSeek(category, sourceLang, targetLang, offset);
+                            newData = await Promise.race([apiRequestPromise, timeoutPromise]);
+                            
+                            // Save the new phrases to the database
+                            window.phraseDB.savePhrases(newData, category)
+                                .then(count => console.log(`Saved ${count} more phrases to database`))
+                                .catch(err => console.error('Error saving more phrases to database:', err));
+                            
+                        } catch (apiError) {
+                            console.error('Error getting more phrases from DeepSeek, using generated variations:', apiError);
+                            // Fallback till genererade variationer
+                            newData = generateMorePhrases(phrasesData, offset);
+                        }
+                    }
+                } catch (dbError) {
+                    console.error('Error accessing database for more phrases:', dbError);
+                    // Proceed with API call as fallback
+                    try {
+                        const timeoutPromise = new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('API request timed out')), 40000));
+                        
+                        const apiRequestPromise = fetchPhrasesFromDeepSeek(category, sourceLang, targetLang, offset);
+                        newData = await Promise.race([apiRequestPromise, timeoutPromise]);
+                        
+                        // Save to database if successful
+                        window.phraseDB.savePhrases(newData, category)
+                            .then(count => console.log(`Saved ${count} more phrases to database`))
+                            .catch(err => console.error('Error saving more phrases to database:', err));
+                        
+                    } catch (apiError) {
+                        console.error('Error getting more phrases from DeepSeek, using generated variations:', apiError);
+                        // Fallback to generated variations
+                        newData = generateMorePhrases(phrasesData, offset);
+                    }
                 }
                 
                 // Lägg till de nya fraserna
@@ -1612,6 +1708,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const sourceLang = sourceLanguageSelect.value;
             const targetLang = targetLanguageSelect.value;
             
+            // First, check if we have this explanation in the database
+            try {
+                const dbExplanation = await window.phraseDB.getExplanation(sourcePhrase, sourceLang, targetLang);
+                
+                if (dbExplanation) {
+                    console.log('Found explanation in database, using cached version');
+                    return dbExplanation.explanation;
+                }
+                
+                console.log('No explanation found in database, generating new one');
+            } catch (dbError) {
+                console.error('Error checking database for explanation:', dbError);
+                // Continue to generate a new explanation
+            }
+            
             // Get learning style from onboarding data to adapt explanation style
             const learningStyle = onboardingData?.learningStyle || 'deep';
             const proficiency = onboardingData?.proficiency || 'beginner';
@@ -1663,7 +1774,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 const data = await response.json();
-                return data.choices[0].message.content;
+                const explanation = data.choices[0].message.content;
+                
+                // Save explanation to database for future use
+                try {
+                    await window.phraseDB.saveExplanation(
+                        sourcePhrase,
+                        targetPhrase,
+                        explanation,
+                        sourceLang,
+                        targetLang
+                    );
+                    console.log('Saved explanation to database');
+                } catch (saveError) {
+                    console.error('Error saving explanation to database:', saveError);
+                    // Continue even if saving fails
+                }
+                
+                return explanation;
             });
             
             // Race the API request against the timeout

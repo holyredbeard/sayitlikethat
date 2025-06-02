@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phrase Database Admin - Say it like that</title>
+    <link rel="icon" href="assets/favicon.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="style.css?v=1.0.3">
+    <script src="db.js?v=1.0.0"></script>
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .admin-title {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .admin-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+        
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+        }
+        
+        .filter-group label {
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+        
+        .filter-group select {
+            padding: 0.5rem;
+            border-radius: 5px;
+            border: 1px solid var(--border-light);
+        }
+        
+        .phrases-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        
+        .phrases-table th {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            text-align: left;
+            padding: 1rem;
+            font-weight: 600;
+        }
+        
+        .phrases-table td {
+            padding: 0.75rem 1rem;
+            border-top: 1px solid var(--border-light);
+        }
+        
+        .phrases-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .action-btn {
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .edit-btn {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+        }
+        
+        .delete-btn {
+            background-color: #ffdddd;
+            color: #d32f2f;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .page-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-light);
+            background-color: white;
+            cursor: pointer;
+        }
+        
+        .page-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+            background-color: #f8f9fa;
+            border-radius: var(--border-radius);
+        }
+    </style>
+</head>
+<body>
+    <div class="top-navigation">
+        <div class="nav-container">
+            <a href="index.html" class="logo-link">
+                <img src="assets/logo.png" alt="Say it like that Logo" class="nav-logo-img">
+            </a>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item">Back to App</a>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1 class="admin-title">Phrase Database Administration</h1>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="total-phrases-count">0</div>
+                <div class="stat-label">Total Phrases</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="languages-count">0</div>
+                <div class="stat-label">Languages</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="categories-count">0</div>
+                <div class="stat-label">Categories</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="explanations-count">0</div>
+                <div class="stat-label">Explanations</div>
+            </div>
+        </div>
+        
+        <p class="admin-subtitle">Browse and manage phrases in the database:</p>
+        
+        <div class="filters">
+            <div class="filter-group">
+                <label for="language-filter">Language:</label>
+                <select id="language-filter">
+                    <option value="all">All Languages</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="category-filter">Category:</label>
+                <select id="category-filter">
+                    <option value="all">All Categories</option>
+                </select>
+            </div>
+        </div>
+        
+        <div id="phrases-table-container">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading phrases from database...</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize database
+            window.phraseDB.init()
+                .then(() => {
+                    console.log("Database initialized successfully for admin page");
+                    loadDatabaseStats();
+                    loadAllPhrases();
+                })
+                .catch(error => {
+                    console.error("Failed to initialize database:", error);
+                    document.getElementById('phrases-table-container').innerHTML = `
+                        <div class="error-message">
+                            <p>There was an error accessing the database. Please try again later.</p>
+                            <p>${error.message}</p>
+                        </div>
+                    `;
+                });
+            
+            // Function to load database statistics
+            async function loadDatabaseStats() {
+                try {
+                    const phrases = await window.phraseDB.getAllPhrases();
+                    
+                    // Update total phrases count
+                    document.getElementById('total-phrases-count').textContent = phrases.length;
+                    
+                    // Get unique languages
+                    const languages = [...new Set(phrases.map(phrase => phrase.lang))];
+                    document.getElementById('languages-count').textContent = languages.length;
+                    
+                    // Get unique categories
+                    const categories = [...new Set(phrases.map(phrase => phrase.category))];
+                    document.getElementById('categories-count').textContent = categories.length;
+                    
+                    // Populate language filter
+                    const languageFilter = document.getElementById('language-filter');
+                    languages.forEach(lang => {
+                        const option = document.createElement('option');
+                        option.value = lang;
+                        option.textContent = lang.charAt(0).toUpperCase() + lang.slice(1);
+                        languageFilter.appendChild(option);
+                    });
+                    
+                    // Populate category filter
+                    const categoryFilter = document.getElementById('category-filter');
+                    categories.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category;
+                        option.textContent = category;
+                        categoryFilter.appendChild(option);
+                    });
+                    
+                    // Add event listeners to filters
+                    languageFilter.addEventListener('change', loadAllPhrases);
+                    categoryFilter.addEventListener('change', loadAllPhrases);
+                    
+                } catch (error) {
+                    console.error('Error loading database stats:', error);
+                }
+            }
+            
+            // Function to load all phrases
+            async function loadAllPhrases() {
+                try {
+                    const tableContainer = document.getElementById('phrases-table-container');
+                    tableContainer.innerHTML = `
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading phrases from database...</p>
+                        </div>
+                    `;
+                    
+                    const phrases = await window.phraseDB.getAllPhrases();
+                    
+                    // Apply filters
+                    const languageFilter = document.getElementById('language-filter').value;
+                    const categoryFilter = document.getElementById('category-filter').value;
+                    
+                    let filteredPhrases = phrases;
+                    
+                    if (languageFilter !== 'all') {
+                        filteredPhrases = filteredPhrases.filter(phrase => phrase.lang === languageFilter);
+                    }
+                    
+                    if (categoryFilter !== 'all') {
+                        filteredPhrases = filteredPhrases.filter(phrase => phrase.category === categoryFilter);
+                    }
+                    
+                    // Sort by timestamp (newest first)
+                    filteredPhrases.sort((a, b) => {
+                        return new Date(b.timestamp || 0) - new Date(a.timestamp || 0);
+                    });
+                    
+                    if (filteredPhrases.length === 0) {
+                        tableContainer.innerHTML = `
+                            <div class="no-data">
+                                <p>No phrases found with the selected filters.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    // Create table HTML
+                    let tableHtml = `
+                        <table class="phrases-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Source Phrase</th>
+                                    <th>Target Phrase</th>
+                                    <th>Language</th>
+                                    <th>Category</th>
+                                    <th>Style</th>
+                                    <th>Date Added</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    filteredPhrases.forEach(phrase => {
+                        const date = phrase.timestamp ? new Date(phrase.timestamp).toLocaleDateString() : 'N/A';
+                        
+                        tableHtml += `
+                            <tr>
+                                <td>${phrase.id}</td>
+                                <td>${phrase.source || 'N/A'}</td>
+                                <td>${phrase.target || 'N/A'}</td>
+                                <td>${phrase.lang || 'N/A'}</td>
+                                <td>${phrase.category || 'N/A'}</td>
+                                <td>${phrase.style || 'N/A'}</td>
+                                <td>${date}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    tableHtml += `
+                            </tbody>
+                        </table>
+                    `;
+                    
+                    tableContainer.innerHTML = tableHtml;
+                    
+                } catch (error) {
+                    console.error('Error loading phrases:', error);
+                    document.getElementById('phrases-table-container').innerHTML = `
+                        <div class="error-message">
+                            <p>There was an error loading phrases. Please try again later.</p>
+                            <p>${error.message}</p>
+                        </div>
+                    `;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

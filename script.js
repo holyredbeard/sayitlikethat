@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Log message to confirm script is running
-    console.log("*** NEW SCRIPT VERSION 1.0.1 LOADED ***");
-    console.log("Hover over any word to hear it pronounced immediately");
+    console.log("*** NEW SCRIPT VERSION 1.0.2 LOADED ***");
+    console.log("Click on any word to hear it pronounced");
     
     const categoryCards = document.querySelectorAll('.category-card');
     const resultsContent = document.getElementById('results-content');
@@ -1209,48 +1209,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Create HTML for a phrase
     function createPhraseHTML(phrase, isFavorite) {
-        const sourceLang = sourceLanguageSelect.value;
-        const targetLang = targetLanguageSelect.value;
-        
-        // Use the phrase's specific language code for the flag, or fall back to selected source language
-        const phraseLang = phrase.lang || sourceLang;
-        const sourceFlag = languageData[phraseLang].flag;
-        
-        // Format target phrase with word mapping
-        let formattedTarget = phrase.target;
-        
-        // Prepare word mappings if words exist
-        if (phrase.words && phrase.words.length > 0) {
-            // Add markup for target words to enable highlighting
-            phrase.words.forEach((word, index) => {
-                // Only attempt replacement if target translation exists
-                if (word.target) {
-                    const regexPattern = word.target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special chars
-                    const regex = new RegExp(`\\b${regexPattern}\\b`); // Use without 'g' flag to match first occurrence only
-                    formattedTarget = formattedTarget.replace(
-                        regex,
-                        `<span class="target-word" data-word-index="${index}">${word.target}</span>`
-                    );
-                }
-            });
-        }
+        // Check if already favorite
+        const isFav = isFavorite || favorites.some(fav => fav.id === phrase.id);
         
         return `
-            <div class="phrase-container" data-style="${phrase.style}">
-                <div class="phrase-content">
-                    <div class="source-phrase">${sourceFlag} ${formatPhraseWithWords(phrase)}</div>
-                    <div class="target-phrase">${formattedTarget}</div>
-                    <div class="style-description">${phrase.style}</div>
-                </div>
-                <button class="audio-btn" data-text="${phrase.source}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-                    </svg>
+        <div class="phrase-container" data-id="${phrase.id}" data-style="${phrase.style}">
+            <div class="phrase-content">
+                <div class="source-phrase">${formatPhraseWithWords(phrase.sourcePhrase)}</div>
+                <div class="target-phrase">${phrase.targetPhrase}</div>
+                ${phrase.style ? `<div class="style-description">${phrase.style}</div>` : ''}
+            </div>
+            <div class="phrase-actions">
+                <button class="favorite-btn ${isFav ? 'active' : ''}" aria-label="Toggle favorite">
+                    <i class="ph ${isFav ? 'ph-star-fill' : 'ph-star'}" style="${isFav ? 'fill: #ffc107;' : ''}"></i>
                 </button>
-                </div>
-            `;
+                <button class="audio-btn" aria-label="Listen to pronunciation">
+                    <i class="ph ph-speaker-high"></i>
+                </button>
+            </div>
+        </div>
+        `;
     }
     
     // Add event listeners to the results
@@ -1258,8 +1236,59 @@ document.addEventListener('DOMContentLoaded', function() {
         // Audio buttons
         document.querySelectorAll('.audio-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                const text = this.getAttribute('data-text');
-                speakText(text);
+                const phraseContainer = this.closest('.phrase-container');
+                const sourcePhrase = phraseContainer.querySelector('.source-phrase').textContent.trim();
+                speakText(sourcePhrase);
+            });
+        });
+        
+        // Favorite buttons
+        document.querySelectorAll('.favorite-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const phraseContainer = this.closest('.phrase-container');
+                const phraseId = phraseContainer.getAttribute('data-id');
+                const sourcePhrase = phraseContainer.querySelector('.source-phrase').textContent.trim();
+                const targetPhrase = phraseContainer.querySelector('.target-phrase').textContent.trim();
+                const style = phraseContainer.getAttribute('data-style');
+                
+                // Check if this phrase is already in favorites
+                const index = favorites.findIndex(fav => fav.id === phraseId);
+                
+                if (index === -1) {
+                    // Add to favorites
+                    const phraseData = {
+                        id: phraseId,
+                        sourcePhrase: sourcePhrase,
+                        targetPhrase: targetPhrase,
+                        style: style
+                    };
+                    favorites.push(phraseData);
+                    
+                    // Update button appearance
+                    btn.classList.add('active');
+                    const iconElement = btn.querySelector('i');
+                    iconElement.classList.remove('ph-star');
+                    iconElement.classList.add('ph-star-fill');
+                    iconElement.style.fill = '#ffc107';
+                } else {
+                    // Remove from favorites
+                    favorites.splice(index, 1);
+                    
+                    // Update button appearance
+                    btn.classList.remove('active');
+                    const iconElement = btn.querySelector('i');
+                    iconElement.classList.remove('ph-star-fill');
+                    iconElement.classList.add('ph-star');
+                    iconElement.style.fill = '';
+                }
+                
+                // Save to localStorage
+                localStorage.setItem('phrasesFavorites', JSON.stringify(favorites));
+                
+                // If we're in the favorites view, reload favorites
+                if (document.querySelector('.favorites-container').style.display === 'block') {
+                    loadFavorites();
+                }
             });
         });
         
@@ -1268,7 +1297,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Click to hear pronunciation
             word.addEventListener('click', function() {
                 // Get only the word text without any child elements
-                const text = this.firstChild.textContent;
+                const text = this.textContent;
                 speakText(text);
             });
             
@@ -1305,7 +1334,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Find and highlight corresponding source word
                 const sourceWord = container.querySelector(`.word[data-word-index="${wordIndex}"]`);
                 if (sourceWord) {
-                    sourceWord.style.backgroundColor = 'rgba(90, 125, 42, 0.2)';
+                    sourceWord.style.backgroundColor = 'var(--primary-light)';
                 }
             });
             
@@ -1316,7 +1345,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Remove highlight from source word
                 const sourceWord = container.querySelector(`.word[data-word-index="${wordIndex}"]`);
                 if (sourceWord) {
-                    sourceWord.style.backgroundColor = 'rgba(90, 125, 42, 0.05)';
+                    sourceWord.style.backgroundColor = 'transparent';
                 }
             });
         });

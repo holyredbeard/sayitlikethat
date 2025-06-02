@@ -8,8 +8,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=1.0.1">
-    <script src="script.js?v=1.0.1" defer></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="style.css?v=1.0.2">
+    <script src="script.js?v=1.0.2" defer></script>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -72,27 +74,67 @@
     <h2 class="category-instruction">Select a category to learn phrases</h2>
 
     <div class="categories-grid">
-        <div class="category-card" data-category="Shopping"><span class="category-icon">🛒</span> <span class="category-card-text">Shopping</span></div>
-        <div class="category-card" data-category="Ordering at a café"><span class="category-icon">☕</span> <span class="category-card-text">Ordering at a café</span></div>
-        <div class="category-card" data-category="Asking for directions"><span class="category-icon">🚉</span> <span class="category-card-text">Asking for directions</span></div>
-        <div class="category-card" data-category="Phone call"><span class="category-icon">📞</span> <span class="category-card-text">Phone call</span></div>
-        <div class="category-card" data-category="Greetings / small talk"><span class="category-icon">👋</span> <span class="category-card-text">Greetings / small talk</span></div>
-        <div class="category-card" data-category="Asking for help"><span class="category-icon">💬</span> <span class="category-card-text">Asking for help</span></div>
-        <div class="category-card" data-category="At the post office"><span class="category-icon">🧾</span> <span class="category-card-text">At the post office</span></div>
-        <div class="category-card" data-category="At the doctor"><span class="category-icon">🏥</span> <span class="category-card-text">At the doctor</span></div>
-        <div class="category-card" data-category="Neighbors / housing"><span class="category-icon">🚪</span> <span class="category-card-text">Neighbors / housing</span></div>
-        <div class="category-card" data-category="Food & restaurant"><span class="category-icon">🍕</span> <span class="category-card-text">Food & restaurant</span></div>
-        <div class="category-card" data-category="Complaints"><span class="category-icon">😡</span> <span class="category-card-text">Complaints</span></div>
-        <div class="category-card" data-category="Flirting"><span class="category-icon">❤️</span> <span class="category-card-text">Flirting</span></div>
-        <div class="category-card" data-category="Work"><span class="category-icon">💼</span> <span class="category-card-text">Work</span></div>
-        <div class="category-card" data-category="Tourist questions"><span class="category-icon">🏖️</span> <span class="category-card-text">Tourist questions</span></div>
+        <div class="category-card" data-category="Shopping">
+            <span class="category-icon"><i class="ph ph-shopping-cart"></i></span> 
+            <span class="category-card-text">Shopping</span>
+        </div>
+        <div class="category-card" data-category="Ordering at a café">
+            <span class="category-icon"><i class="ph ph-coffee"></i></span> 
+            <span class="category-card-text">Ordering at a café</span>
+        </div>
+        <div class="category-card" data-category="Asking for directions">
+            <span class="category-icon"><i class="ph ph-map-pin"></i></span> 
+            <span class="category-card-text">Asking for directions</span>
+        </div>
+        <div class="category-card" data-category="Phone call">
+            <span class="category-icon"><i class="ph ph-phone"></i></span> 
+            <span class="category-card-text">Phone call</span>
+        </div>
+        <div class="category-card" data-category="Greetings / small talk">
+            <span class="category-icon"><i class="ph ph-hand-waving"></i></span> 
+            <span class="category-card-text">Greetings / small talk</span>
+        </div>
+        <div class="category-card" data-category="Asking for help">
+            <span class="category-icon"><i class="ph ph-question"></i></span> 
+            <span class="category-card-text">Asking for help</span>
+        </div>
+        <div class="category-card" data-category="At the post office">
+            <span class="category-icon"><i class="ph ph-envelope"></i></span> 
+            <span class="category-card-text">At the post office</span>
+        </div>
+        <div class="category-card" data-category="At the doctor">
+            <span class="category-icon"><i class="ph ph-first-aid-kit"></i></span> 
+            <span class="category-card-text">At the doctor</span>
+        </div>
+        <div class="category-card" data-category="Neighbors / housing">
+            <span class="category-icon"><i class="ph ph-house"></i></span> 
+            <span class="category-card-text">Neighbors / housing</span>
+        </div>
+        <div class="category-card" data-category="Food & restaurant">
+            <span class="category-icon"><i class="ph ph-fork-knife"></i></span> 
+            <span class="category-card-text">Food & restaurant</span>
+        </div>
+        <div class="category-card" data-category="Complaints">
+            <span class="category-icon"><i class="ph ph-warning"></i></span> 
+            <span class="category-card-text">Complaints</span>
+        </div>
+        <div class="category-card" data-category="Flirting">
+            <span class="category-icon"><i class="ph ph-heart"></i></span> 
+            <span class="category-card-text">Flirting</span>
+        </div>
+        <div class="category-card" data-category="Work">
+            <span class="category-icon"><i class="ph ph-briefcase"></i></span> 
+            <span class="category-card-text">Work</span>
+        </div>
+        <div class="category-card" data-category="Tourist questions">
+            <span class="category-icon"><i class="ph ph-camera"></i></span> 
+            <span class="category-card-text">Tourist questions</span>
+        </div>
     </div>
 
     <div class="favorites-container">
         <h2 class="favorites-title">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-            </svg>
+            <i class="ph ph-star-fill" style="color: var(--accent-orange);"></i>
             My Favorite Phrases
         </h2>
         <div id="favorites-content">
@@ -118,7 +160,9 @@
             <!-- Results will be displayed here -->
         </div>
         
-        <button id="load-more" class="btn load-more-btn">More phrases</button>
+        <button id="load-more" class="btn load-more-btn">
+            More phrases <i class="ph ph-arrow-down"></i>
+        </button>
     </div>
 
     <!-- CTA Section -->
@@ -126,8 +170,8 @@
         <div class="cta-content">
             <h3>Love this? Unlock more categories, export tools and upcoming languages!</h3>
             <div class="cta-buttons">
-                <a href="#" class="cta-btn pro-btn">Go Pro</a>
-                <a href="https://ko-fi.com/" target="_blank" class="cta-btn kofi-btn">Support via Ko-fi</a>
+                <a href="#" class="cta-btn pro-btn">Go Pro <i class="ph ph-crown"></i></a>
+                <a href="https://ko-fi.com/" target="_blank" class="cta-btn kofi-btn">Support via Ko-fi <i class="ph ph-coffee"></i></a>
             </div>
         </div>
     </div>

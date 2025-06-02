@@ -731,19 +731,53 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // För första begäran eller om API-anrop misslyckas, använd exempeldata som fallback
             let data;
+            let waitingForApiResponse = true; // Flag to track if we're still waiting for API
+            let fallbackDataDisplayed = false; // Flag to track if fallback data has been displayed
             
             if (offset === 0) {
                 try {
                     // Försök att hämta fraser från DeepSeek API med timeout
                     const timeoutPromise = new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error('API request timed out')), 20000));
+                        setTimeout(() => reject(new Error('API request timed out')), 40000)); // Increased to 40 seconds
                     
+                    // Start the API request
                     const apiRequestPromise = fetchPhrasesFromDeepSeek(category, sourceLang, targetLang);
-                    data = await Promise.race([apiRequestPromise, timeoutPromise]);
+                    
+                    // Also create a way to continue with API data even after timeout
+                    apiRequestPromise.then(apiData => {
+                        // If we get here, the API responded eventually
+                        console.log('API eventually responded successfully');
+                        if (fallbackDataDisplayed && waitingForApiResponse) {
+                            // If fallback data was already displayed but we're still on this category
+                            console.log('Replacing fallback data with actual API response');
+                            phrasesData = apiData;
+                            displayResults(apiData, category);
+                            styleFilterContainer.style.display = 'flex';
+                            loadMoreBtn.style.display = 'block';
+                        }
+                        waitingForApiResponse = false;
+                    }).catch(e => {
+                        // This only happens if the API call itself fails (not just times out)
+                        console.error('API call failed even after timeout:', e);
+                        waitingForApiResponse = false;
+                    });
+                    
+                    // Race the API request against the timeout
+                    try {
+                        data = await Promise.race([apiRequestPromise, timeoutPromise]);
+                        waitingForApiResponse = false; // Got data before timeout
+                    } catch (timeoutError) {
+                        console.error('Error with DeepSeek API, falling back to sample data:', timeoutError);
+                        // Fallback till exempeldata
+                        data = generateSampleData(category);
+                        fallbackDataDisplayed = true;
+                        // But keep waitingForApiResponse as true
+                    }
                 } catch (apiError) {
                     console.error('Error with DeepSeek API, falling back to sample data:', apiError);
                     // Fallback till exempeldata
                     data = generateSampleData(category);
+                    waitingForApiResponse = false; // Don't wait anymore
                 }
                 
                 phrasesData = data;
@@ -756,7 +790,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 try {
                     // Försök att få fler fraser från DeepSeek API
                     const timeoutPromise = new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error('API request timed out')), 20000));
+                        setTimeout(() => reject(new Error('API request timed out')), 40000)); // Increased to 40 seconds
                     
                     const apiRequestPromise = fetchPhrasesFromDeepSeek(category, sourceLang, targetLang, offset);
                     newData = await Promise.race([apiRequestPromise, timeoutPromise]);
@@ -1600,7 +1634,12 @@ document.addEventListener('DOMContentLoaded', function() {
             
             Explain in ${targetLang}.`;
             
-            const response = await fetch(DEEPSEEK_API_URL, {
+            // Create a timeout promise
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Explanation generation timed out')), 40000));
+            
+            // Create the API request promise
+            const apiRequestPromise = fetch(DEEPSEEK_API_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1617,19 +1656,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     temperature: 0.7,
                     max_tokens: 800
                 })
+            }).then(async response => {
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`DeepSeek API error: ${errorData.error?.message || response.statusText}`);
+                }
+                
+                const data = await response.json();
+                return data.choices[0].message.content;
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`DeepSeek API error: ${errorData.error?.message || response.statusText}`);
-            }
-
-            const data = await response.json();
-            const explanation = data.choices[0].message.content;
             
-            return explanation;
+            // Race the API request against the timeout
+            return await Promise.race([apiRequestPromise, timeoutPromise]);
+            
         } catch (error) {
             console.error('Error generating phrase explanation:', error);
+            
+            // Provide a simple fallback explanation if timeout or other error
+            if (error.message.includes('timed out')) {
+                return `<p>Sorry, the explanation is taking longer than expected to generate. The API request timed out.</p>
+                <p>Here's a simple explanation instead:</p>
+                <ul>
+                    <li>The phrase in ${sourceLanguageSelect.value} is: <strong>${sourcePhrase}</strong></li>
+                    <li>It translates to ${targetLanguageSelect.value} as: <strong>${targetPhrase}</strong></li>
+                </ul>
+                <p>Try clicking the explain button again if you'd like a more detailed explanation.</p>`;
+            }
+            
             throw error;
         }
     }

@@ -3,6 +3,22 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("*** NEW SCRIPT VERSION 1.0.3 LOADED ***");
     console.log("Click on any word to hear it pronounced");
     
+    // Add CSS for database indicator
+    const dbIndicatorStyle = document.createElement('style');
+    dbIndicatorStyle.textContent = `
+        .db-indicator {
+            font-size: 0.7rem;
+            background-color: #e3f2fd;
+            color: #1565c0;
+            padding: 1px 4px;
+            border-radius: 3px;
+            margin-left: 8px;
+            font-weight: bold;
+            opacity: 0.7;
+        }
+    `;
+    document.head.appendChild(dbIndicatorStyle);
+    
     // Initialize the database
     window.phraseDB.init()
         .then(() => {
@@ -751,7 +767,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     // If we have phrases in the database, use them
                     if (dbPhrases && dbPhrases.length > 0) {
                         console.log(`Using ${dbPhrases.length} phrases from database for category "${category}"`);
-                        data = dbPhrases;
+                        // Mark these phrases as coming from database
+                        data = dbPhrases.map(phrase => ({...phrase, fromDatabase: true}));
                         waitingForApiResponse = false; // Don't need to wait for API
                     } else {
                         // If no phrases in database, try the API
@@ -851,7 +868,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // If we have enough phrases in the database, use them
                     if (allDbPhrases && allDbPhrases.length > offset + 3) {
-                        newData = allDbPhrases.slice(offset, offset + 3);
+                        newData = allDbPhrases.slice(offset, offset + 3).map(phrase => ({...phrase, fromDatabase: true}));
                         console.log(`Using ${newData.length} more phrases from database for category "${category}"`);
                     } else {
                         // If not enough phrases in database, try the API
@@ -1372,6 +1389,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const favoriteClass = isFavorite ? 'active' : '';
         const styleTag = phrase.style ? `<span class="style-description">Style: ${phrase.style}</span>` : '';
         
+        // Add a 'db' indicator if the phrase was loaded from database
+        const dbIndicator = phrase.fromDatabase ? `<span class="db-indicator">db</span>` : '';
+        
         const userName = (onboardingData && onboardingData.name) ? onboardingData.name : 'Friend';
 
         // Generate a client-side ID if not provided by the API
@@ -1410,6 +1430,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="phrase-header">
                         <p class="source-language-label">${sourceLangDisplay}</p>
                         <p class="target-language-label">${targetLangDisplay}</p>
+                        ${dbIndicator}
                     </div>
                     <p class="source-phrase">${formattedSourcePhrase}</p>
                     <p class="target-phrase">${formattedTargetPhrase}</p>

@@ -23,6 +23,46 @@ document.addEventListener('DOMContentLoaded', function() {
             z-index: 10;
             box-shadow: 0 1px 3px rgba(0,0,0,0.12);
         }
+
+        .phrase-explanation {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .explanation-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .small-spinner {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+        }
+
+        .explanation-content {
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .explanation-content p {
+            margin-bottom: 10px;
+        }
+
+        .explanation-content ul {
+            margin-left: 20px;
+            margin-bottom: 10px;
+        }
+
+        .explanation-content .error {
+            color: #d32f2f;
+            font-weight: bold;
+        }
     `;
     document.head.appendChild(dbIndicatorStyle);
     
@@ -1492,22 +1532,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     explanationDiv.style.display = 'block';
                     explanationDiv.querySelector('.explanation-loading').style.display = 'flex';
                     explanationContent.style.display = 'none';
+                    console.log(`Clicked explain button for phrase: "${sourcePhrase}" -> "${targetPhrase}"`);
                     
                     // Get explanation if it doesn't exist yet
                     if (!explanationContent.innerHTML) {
+                        console.log("Explanation doesn't exist yet, generating...");
                         generatePhraseExplanation(sourcePhrase, targetPhrase)
                             .then(explanation => {
+                                console.log("Explanation received successfully");
                                 explanationContent.innerHTML = explanation;
                                 explanationDiv.querySelector('.explanation-loading').style.display = 'none';
                                 explanationContent.style.display = 'block';
                             })
                             .catch(error => {
-                                explanationContent.innerHTML = `<p class="error">Sorry, couldn't generate explanation: ${error.message}</p>`;
+                                console.error("Error in explanation promise:", error);
+                                explanationContent.innerHTML = `
+                                    <p class="error">Sorry, couldn't generate explanation: ${error.message}</p>
+                                    <p>Try again later or with a different phrase.</p>
+                                `;
                                 explanationDiv.querySelector('.explanation-loading').style.display = 'none';
                                 explanationContent.style.display = 'block';
                             });
                     } else {
                         // If we already have the explanation, just show it
+                        console.log("Using existing explanation");
                         explanationDiv.querySelector('.explanation-loading').style.display = 'none';
                         explanationContent.style.display = 'block';
                     }
@@ -1736,6 +1784,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const sourceLang = sourceLanguageSelect.value;
             const targetLang = targetLanguageSelect.value;
             
+            console.log(`Generating explanation for: "${sourcePhrase}" (${sourceLang} to ${targetLang})`);
+            
             // First, check if we have this explanation in the database
             try {
                 const dbExplanation = await window.phraseDB.getExplanation(sourcePhrase, sourceLang, targetLang);
@@ -1773,6 +1823,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             Explain in ${targetLang}.`;
             
+            console.log('Using prompt:', prompt);
+            
             // Create a timeout promise
             const timeoutPromise = new Promise((_, reject) => 
                 setTimeout(() => reject(new Error('Explanation generation timed out')), 40000));
@@ -1796,12 +1848,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     max_tokens: 800
                 })
             }).then(async response => {
+                console.log('DeepSeek API response status:', response.status);
+                
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`DeepSeek API error: ${errorData.error?.message || response.statusText}`);
+                    const errorText = await response.text();
+                    console.error('DeepSeek API error response:', errorText);
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        throw new Error(`DeepSeek API error: ${errorData.error?.message || response.statusText}`);
+                    } catch (parseError) {
+                        throw new Error(`DeepSeek API error: ${response.statusText} - ${errorText.substring(0, 100)}`);
+                    }
                 }
                 
                 const data = await response.json();
+                console.log('DeepSeek API response data:', data);
+                
+                if (!data || !data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
+                    throw new Error('Invalid response format from DeepSeek API');
+                }
+                
                 const explanation = data.choices[0].message.content;
                 
                 // Save explanation to database for future use
@@ -1820,26 +1886,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 return explanation;
+            }).catch(apiError => {
+                console.error('Error in API request:', apiError);
+                throw apiError;
             });
             
             // Race the API request against the timeout
-            return await Promise.race([apiRequestPromise, timeoutPromise]);
+            try {
+                return await Promise.race([apiRequestPromise, timeoutPromise]);
+            } catch (raceError) {
+                console.error('Error in Promise.race:', raceError);
+                throw raceError;
+            }
             
         } catch (error) {
             console.error('Error generating phrase explanation:', error);
             
             // Provide a simple fallback explanation if timeout or other error
-            if (error.message.includes('timed out')) {
-                return `<p>Sorry, the explanation is taking longer than expected to generate. The API request timed out.</p>
-                <p>Here's a simple explanation instead:</p>
-                <ul>
-                    <li>The phrase in ${sourceLanguageSelect.value} is: <strong>${sourcePhrase}</strong></li>
-                    <li>It translates to ${targetLanguageSelect.value} as: <strong>${targetPhrase}</strong></li>
-                </ul>
-                <p>Try clicking the explain button again if you'd like a more detailed explanation.</p>`;
-            }
-            
-            throw error;
+            return `<p>Sorry, there was an error generating the explanation: ${error.message}</p>
+            <p>Here's a simple explanation instead:</p>
+            <ul>
+                <li>The phrase in ${sourceLanguageSelect.value} is: <strong>${sourcePhrase}</strong></li>
+                <li>It translates to ${targetLanguageSelect.value} as: <strong>${targetPhrase}</strong></li>
+            </ul>
+            <p>Try clicking the explain button again to retry.</p>`;
         }
     }
 });

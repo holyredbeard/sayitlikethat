@@ -1284,6 +1284,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p class="source-phrase">${formattedSourcePhrase}</p>
                     <p class="target-phrase">${formattedTargetPhrase}</p>
                     ${styleTag}
+                    <div class="phrase-explanation" style="display: none;">
+                        <div class="explanation-loading">
+                            <div class="spinner small-spinner"></div>
+                            <span>Generating explanation...</span>
+                        </div>
+                        <div class="explanation-content"></div>
+                    </div>
                 </div>
                 <div class="phrase-actions">
                     <button class="favorite-btn ${favoriteClass}" aria-label="Favorite phrase">
@@ -1291,6 +1298,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     </button>
                     <button class="audio-btn" aria-label="Play audio for phrase">
                         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                    </button>
+                    <button class="explain-btn" aria-label="Explain this phrase">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                     </button>
                 </div>
             </div>
@@ -1305,6 +1315,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 const phraseContainer = this.closest('.phrase-container');
                 const sourcePhrase = phraseContainer.querySelector('.source-phrase').textContent.trim();
                 speakText(sourcePhrase);
+            });
+        });
+        
+        // Explain buttons
+        document.querySelectorAll('.explain-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const phraseContainer = this.closest('.phrase-container');
+                const phraseId = phraseContainer.getAttribute('data-id');
+                const sourcePhrase = phraseContainer.querySelector('.source-phrase').textContent.trim();
+                const targetPhrase = phraseContainer.querySelector('.target-phrase').textContent.trim();
+                const explanationDiv = phraseContainer.querySelector('.phrase-explanation');
+                const explanationContent = explanationDiv.querySelector('.explanation-content');
+                
+                // Toggle explanation visibility
+                if (explanationDiv.style.display === 'none') {
+                    // Show explanation section with loading indicator
+                    explanationDiv.style.display = 'block';
+                    explanationDiv.querySelector('.explanation-loading').style.display = 'flex';
+                    explanationContent.style.display = 'none';
+                    
+                    // Get explanation if it doesn't exist yet
+                    if (!explanationContent.innerHTML) {
+                        generatePhraseExplanation(sourcePhrase, targetPhrase)
+                            .then(explanation => {
+                                explanationContent.innerHTML = explanation;
+                                explanationDiv.querySelector('.explanation-loading').style.display = 'none';
+                                explanationContent.style.display = 'block';
+                            })
+                            .catch(error => {
+                                explanationContent.innerHTML = `<p class="error">Sorry, couldn't generate explanation: ${error.message}</p>`;
+                                explanationDiv.querySelector('.explanation-loading').style.display = 'none';
+                                explanationContent.style.display = 'block';
+                            });
+                    } else {
+                        // If we already have the explanation, just show it
+                        explanationDiv.querySelector('.explanation-loading').style.display = 'none';
+                        explanationContent.style.display = 'block';
+                    }
+                } else {
+                    // Hide explanation
+                    explanationDiv.style.display = 'none';
+                }
             });
         });
         
@@ -1518,5 +1570,67 @@ document.addEventListener('DOMContentLoaded', function() {
                 btn.classList.add('active');
             }
         });
+    }
+
+    // Function to generate explanation for a phrase
+    async function generatePhraseExplanation(sourcePhrase, targetPhrase) {
+        try {
+            const sourceLang = sourceLanguageSelect.value;
+            const targetLang = targetLanguageSelect.value;
+            
+            // Get learning style from onboarding data to adapt explanation style
+            const learningStyle = onboardingData?.learningStyle || 'deep';
+            const proficiency = onboardingData?.proficiency || 'beginner';
+            
+            // Build prompt for the explanation
+            const prompt = `Explain the grammar and structure of this phrase for a ${proficiency} language learner who prefers a ${learningStyle} learning style:
+            
+            Source phrase (${sourceLang}): "${sourcePhrase}"
+            Target phrase (${targetLang}): "${targetPhrase}"
+            
+            Please provide:
+            1. A brief grammatical breakdown
+            2. Key vocabulary and their usage
+            3. Cultural context or usage notes if relevant
+            
+            Format the explanation in simple HTML (only use p, ul, li, em, strong tags). 
+            If the learning style is "deep", provide more detailed grammar explanations.
+            If the learning style is "playful", use more examples and fun comparisons.
+            If the learning style is "fast", keep it concise and practical.
+            
+            Explain in ${targetLang}.`;
+            
+            const response = await fetch(DEEPSEEK_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: "deepseek-chat",
+                    messages: [
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ],
+                    temperature: 0.7,
+                    max_tokens: 800
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`DeepSeek API error: ${errorData.error?.message || response.statusText}`);
+            }
+
+            const data = await response.json();
+            const explanation = data.choices[0].message.content;
+            
+            return explanation;
+        } catch (error) {
+            console.error('Error generating phrase explanation:', error);
+            throw error;
+        }
     }
 });

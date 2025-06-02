@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let phrasesData = [];
     let audioContext = null;
     let favorites = JSON.parse(localStorage.getItem('phrasesFavorites')) || [];
+    let onboardingData = JSON.parse(localStorage.getItem('onboardingData')) || { name: 'Friend' }; // Default if not found
     
     // Add click event to category cards
     categoryCards.forEach(card => {
@@ -735,7 +736,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 try {
                     // Försök att hämta fraser från DeepSeek API med timeout
                     const timeoutPromise = new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error('API request timed out')), 10000));
+                        setTimeout(() => reject(new Error('API request timed out')), 20000));
                     
                     const apiRequestPromise = fetchPhrasesFromDeepSeek(category, sourceLang, targetLang);
                     data = await Promise.race([apiRequestPromise, timeoutPromise]);
@@ -755,7 +756,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 try {
                     // Försök att få fler fraser från DeepSeek API
                     const timeoutPromise = new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error('API request timed out')), 10000));
+                        setTimeout(() => reject(new Error('API request timed out')), 20000));
                     
                     const apiRequestPromise = fetchPhrasesFromDeepSeek(category, sourceLang, targetLang, offset);
                     newData = await Promise.race([apiRequestPromise, timeoutPromise]);
@@ -1176,58 +1177,123 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Format phrase with words
     function formatPhraseWithWords(phrase) {
-        if (!phrase.words || phrase.words.length === 0) {
-            return phrase.source;
+        if (!phrase || !phrase.words || phrase.words.length === 0) {
+            return phrase && phrase.source ? phrase.source : (typeof phrase === 'string' ? phrase : '');
         }
         
-        let formattedPhrase = phrase.source;
+        let formattedPhrase = phrase.source || (typeof phrase === 'string' ? phrase : '');
         const sourceLang = sourceLanguageSelect.value;
         
         // Uppdatera ord-översättningar baserat på källspråk
-        if (sourceLang !== 'italian') {
+        if (phrase.words && sourceLang !== 'italian') {
             // Försök att översätta orden baserat på källspråk
             phrase.words.forEach((word, index) => {
                 // Uppdatera källord om möjligt
-                if (translationData[word.source]) {
+                if (word && word.source && translationData[word.source]) {
                     word.source = translationData[word.source][sourceLang] || word.source;
                 }
             });
         }
         
         // Replace each word with an interactive span
-        phrase.words.forEach((word, index) => {
-            const wordPattern = word.source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special regex characters
-            const regex = new RegExp(`\\b${wordPattern}\\b`); // Use without 'g' flag to match first occurrence only
-            formattedPhrase = formattedPhrase.replace(
-                regex,
-                `<span class="word" data-word-index="${index}">${word.source}</span>`
-            );
-        });
+        if (phrase.words) {
+            phrase.words.forEach((word, index) => {
+                if (!word || !word.source) return;
+                
+                const wordPattern = word.source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special regex characters
+                const regex = new RegExp(`\\b${wordPattern}\\b`); // Use without 'g' flag to match first occurrence only
+                formattedPhrase = formattedPhrase.replace(
+                    regex,
+                    `<span class="word" data-word-index="${index}">${word.source}</span>`
+                );
+            });
+        }
+        
+        return formattedPhrase;
+    }
+    
+    // New function to format target phrase words
+    function formatTargetPhraseWithWords(phrase) {
+        if (!phrase || !phrase.words || phrase.words.length === 0) {
+            return phrase && phrase.target ? phrase.target : (typeof phrase === 'string' ? phrase : '');
+        }
+        
+        let formattedPhrase = phrase.target || (typeof phrase === 'string' ? phrase : '');
+        
+        // Replace each word with an interactive span for target phrase
+        if (phrase.words) {
+            phrase.words.forEach((word, index) => {
+                if (!word || !word.target) return;
+                
+                const wordPattern = word.target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special regex characters
+                const regex = new RegExp(`\\b${wordPattern}\\b`); // Use without 'g' flag to match first occurrence only
+                formattedPhrase = formattedPhrase.replace(
+                    regex,
+                    `<span class="target-word" data-word-index="${index}">${word.target}</span>`
+                );
+            });
+        }
         
         return formattedPhrase;
     }
     
     // Create HTML for a phrase
     function createPhraseHTML(phrase, isFavorite) {
-        // Check if already favorite
-        const isFav = isFavorite || favorites.some(fav => fav.id === phrase.id);
+        const favoriteClass = isFavorite ? 'active' : '';
+        const styleTag = phrase.style ? `<span class="style-description">Style: ${phrase.style}</span>` : '';
         
+        const userName = (onboardingData && onboardingData.name) ? onboardingData.name : 'Friend';
+
+        // Generate a client-side ID if not provided by the API
+        const phraseId = phrase.id || `csid_${Date.now()}_${Math.random().toString(36).substring(2,7)}`;
+        
+        // Use phrase.lang for source language, and selected target language for target
+        const sourceLangDisplay = (phrase.lang && languageData[phrase.lang]) 
+            ? languageData[phrase.lang].name 
+            : (languageData[sourceLanguageSelect.value]?.name || 'Source');
+        const targetLangDisplay = languageData[targetLanguageSelect.value]?.name || 'Target';
+
+        // Initialize with defaults to prevent undefined
+        let sourcePhraseText = phrase.source || ''; 
+        let targetPhraseText = phrase.target || '';
+
+        if (userName) {
+            const namePlaceholder = /\[name\]/gi; // Case-insensitive global regex to find [name]
+            sourcePhraseText = sourcePhraseText.replace(namePlaceholder, userName);
+            targetPhraseText = targetPhraseText.replace(namePlaceholder, userName);
+        }
+
+        // Update phrase object with processed text for formatPhraseWithWords
+        const phraseForFormatting = {
+            ...phrase,
+            source: sourcePhraseText,
+            target: targetPhraseText
+        };
+
+        // Generate formatted HTML with interactive words
+        const formattedSourcePhrase = formatPhraseWithWords(phraseForFormatting);
+        const formattedTargetPhrase = formatTargetPhraseWithWords(phraseForFormatting);
+
         return `
-        <div class="phrase-container" data-id="${phrase.id}" data-style="${phrase.style}">
-            <div class="phrase-content">
-                <div class="source-phrase">${formatPhraseWithWords(phrase.sourcePhrase)}</div>
-                <div class="target-phrase">${phrase.targetPhrase}</div>
-                ${phrase.style ? `<div class="style-description">${phrase.style}</div>` : ''}
+            <div class="phrase-container" data-id="${phraseId}" data-style="${phrase.style || ''}">
+                <div class="phrase-content">
+                    <div class="phrase-header">
+                        <p class="source-language-label">${sourceLangDisplay}</p>
+                        <p class="target-language-label">${targetLangDisplay}</p>
+                    </div>
+                    <p class="source-phrase">${formattedSourcePhrase}</p>
+                    <p class="target-phrase">${formattedTargetPhrase}</p>
+                    ${styleTag}
+                </div>
+                <div class="phrase-actions">
+                    <button class="favorite-btn ${favoriteClass}" aria-label="Favorite phrase">
+                        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    </button>
+                    <button class="audio-btn" aria-label="Play audio for phrase">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                    </button>
+                </div>
             </div>
-            <div class="phrase-actions">
-                <button class="favorite-btn ${isFav ? 'active' : ''}" aria-label="Toggle favorite">
-                    <i class="ph ${isFav ? 'ph-star-fill' : 'ph-star'}" style="${isFav ? 'fill: #ffc107;' : ''}"></i>
-                </button>
-                <button class="audio-btn" aria-label="Listen to pronunciation">
-                    <i class="ph ph-speaker-high"></i>
-                </button>
-            </div>
-        </div>
         `;
     }
     
@@ -1267,9 +1333,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Update button appearance
                     btn.classList.add('active');
                     const iconElement = btn.querySelector('i');
-                    iconElement.classList.remove('ph-star');
-                    iconElement.classList.add('ph-star-fill');
-                    iconElement.style.fill = '#ffc107';
+                    if (iconElement) {
+                        iconElement.classList.remove('ph-star');
+                        iconElement.classList.add('ph-star-fill');
+                        iconElement.style.fill = '#ffc107';
+                    }
                 } else {
                     // Remove from favorites
                     favorites.splice(index, 1);
@@ -1277,9 +1345,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Update button appearance
                     btn.classList.remove('active');
                     const iconElement = btn.querySelector('i');
-                    iconElement.classList.remove('ph-star-fill');
-                    iconElement.classList.add('ph-star');
-                    iconElement.style.fill = '';
+                    if (iconElement) {
+                        iconElement.classList.remove('ph-star-fill');
+                        iconElement.classList.add('ph-star');
+                        iconElement.style.fill = '';
+                    }
                 }
                 
                 // Save to localStorage

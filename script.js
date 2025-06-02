@@ -691,22 +691,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load more button click handler
     loadMoreBtn.addEventListener('click', function() {
-        if (currentOffset >= 6) {
-            // Om vi redan har laddat två uppsättningar variationer, 
-            // återställ och visa ett meddelande om att det inte finns fler fraser
-            loadMoreBtn.textContent = 'No more phrases available';
-            loadMoreBtn.disabled = true;
-            
-            // Återställ knappen efter 2 sekunder
-            setTimeout(() => {
-                loadMoreBtn.textContent = 'More phrases';
-                loadMoreBtn.disabled = false;
-            }, 2000);
-            return;
-        }
+        // Visa laddningsanimation på knappen
+        const originalText = loadMoreBtn.textContent;
+        loadMoreBtn.textContent = 'Loading...';
+        loadMoreBtn.disabled = true;
         
+        // Öka offset för att få nya fraser
         currentOffset += 3;
-        fetchPhrases(currentCategory, currentOffset);
+        
+        // Försök hämta nya fraser via API
+        fetchPhrases(currentCategory, currentOffset)
+            .then(() => {
+                // Återställ knappen när hämtningen är klar
+                loadMoreBtn.textContent = originalText;
+                loadMoreBtn.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error loading more phrases:', error);
+                loadMoreBtn.textContent = 'Try again';
+                loadMoreBtn.disabled = false;
+            });
     });
     
     // Fetch phrases for a category
